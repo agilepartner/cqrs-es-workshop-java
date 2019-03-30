@@ -21,3 +21,4 @@ The code for this workshop is inspired by the following repositories
 ## Steps
 
 * [Step 01 : Create an empty Spring Boot app](/Step01/Step01.md)
+* [Step 02 : Create your first aggregate](/Step02/Step02.md)

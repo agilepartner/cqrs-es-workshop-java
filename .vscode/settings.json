@@ -4,6 +4,8 @@
         "CQRS",
         "Initializr",
         "Lombok",
+        "Serializable",
+        "Superclass",
         "ctxt",
         "eventsourcing"
     ]
