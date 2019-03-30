@@ -74,8 +74,8 @@ Now that we have all we need, how would we move on implementing the domain. Well
 The development cycle for each use case will mostly be the same:
 
 1. Define the command
-2. Add a new public method to the aggregate
-3. Define the domain event(s)
+2. Define the domain event(s)
+3. Add a new public method to the aggregate
 4. Define the command handler
 5. Write some tests
 
@@ -109,28 +109,81 @@ public class CreateInventoryItem extends Command {
 }
 ```
 
-#### Create inventory item aggregate
-
-```Java
-
-```
-
 #### Create inventory item event
 
-```Java
+The domain event is pretty straight forward. It needs the `aggregateId`, a `name` and the `quantity`.
 
+```Java
+public class InventoryItemCreated extends Event {
+    public final String name;
+    public final int quantity;
+
+    public InventoryItemCreated(UUID aggregateId, String name, int quantity) {
+        this.aggregateId  = aggregateId;
+        this.name = name;
+        this.quantity = quantity;
+    }
+}
+```
+
+#### Create inventory item aggregate
+
+To create the *aggregate*, we just need a constructor. No real need for a *factory method* here, because the *aggregate* is very simple and only composed of the `AggregateRoot` itself.
+
+```Java
+public class InventoryItem extends AggregateRoot {
+
+    public InventoryItem(UUID aggregateId, String name, int quantity) {
+        super(aggregateId);
+        raise(new InventoryItemCreated(aggregateId, name, quantity));
+    }
+}
 ```
 
 #### Create inventory item command handler
 
-```Java
+The *command handler* does only two things. First create the *aggregate*, second save it. To save the *aggregate*, we need a `Repository` that will be injected in the constructor of the *command handler* itself. We will see later on how to wire everything up.
 
+```Java
+public class CreateInventoryItemHandler implements CommandHandler<CreateInventoryItem> {
+
+    private Repository<InventoryItem> repository;
+
+    public CreateInventoryItemHandler(Repository<InventoryItem> repository) {
+        this.repository = repository;
+    } 
+
+    public void handle(CreateInventoryItem command) {
+        InventoryItem item = new InventoryItem(command.aggregateId, command.name, command.initialQuantity);
+        repository.save(item);
+    }
+}
 ```
 
 #### Test create inventory item
 
-```Java
+The test is also straight forward. We just created a new `Helper` class that defines a generic method to get all events of a specific type. We also refactored `AggregateRootTests` to use this *helper*.
 
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    @Test
+    public void createInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = new InventoryItem(aggregateId, name, quantity);
+
+        ArrayList<InventoryItemCreated> events = Helper.getEvents(item, InventoryItemCreated.class);
+        assertEquals(1, events.size());
+        InventoryItemCreated evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(name, evt.name);
+        assertEquals(quantity, evt.quantity);
+        assertEquals(1, evt.version);
+    }
+}
 ```
 
 ### Rename inventory item

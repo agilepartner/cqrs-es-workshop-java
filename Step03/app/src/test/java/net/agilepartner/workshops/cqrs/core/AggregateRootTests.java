@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import net.agilepartner.workshops.cqrs.Helper;
+
 @RunWith(SpringRunner.class)
 public class AggregateRootTests {
 
@@ -23,7 +25,7 @@ public class AggregateRootTests {
 
 		//Assert
 		assertEquals(id, aggregate.id);
-		ArrayList<NameChanged> events = getEvents(aggregate);
+		ArrayList<NameChanged> events = Helper.getEvents(aggregate, NameChanged.class);
 		assertEquals(events.size(), 1);
 		NameChanged evt = events.get(0);
 		assertEquals(id, evt.aggregateId);
@@ -42,7 +44,7 @@ public class AggregateRootTests {
 		aggregate.changeName(name);
 
 		//Assert
-		ArrayList<NameChanged> events = getEvents(aggregate);
+		ArrayList<NameChanged> events = Helper.getEvents(aggregate, NameChanged.class);
 		assertEquals(events.size(), 2);
 		NameChanged evt = events.get(1);
 		assertEquals(id, evt.aggregateId);
@@ -71,20 +73,9 @@ public class AggregateRootTests {
 		aggregate.loadFromHistory(history);
 
 		//Assert
-		ArrayList<NameChanged> events = getEvents(aggregate);
+		ArrayList<NameChanged> events = Helper.getEvents(aggregate, NameChanged.class);
 		assertEquals(events.size(), 0);
 		assertEquals(2, aggregate.version);
 		assertEquals(name2, aggregate.getName());
 	}
-
-	private ArrayList<NameChanged> getEvents(AggregateRoot root)
-	{
-		ArrayList<NameChanged> events = new ArrayList<NameChanged>();
-		for (Event evt : root.getUncommittedChanges()) {
-			if (evt instanceof NameChanged)
-				events.add((NameChanged) evt);
-		}
-		return events;
-	}
-
 }

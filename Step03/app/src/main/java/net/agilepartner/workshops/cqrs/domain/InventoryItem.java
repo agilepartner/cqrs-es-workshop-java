@@ -10,5 +10,4 @@ public class InventoryItem extends AggregateRoot {
         super(aggregateId);
         raise(new InventoryItemCreated(aggregateId, name, quantity));
     }
-
 }
