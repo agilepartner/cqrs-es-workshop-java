@@ -2,8 +2,8 @@ package net.agilepartner.workshops.cqrs.domain;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -41,7 +41,39 @@ public class InventoryItemTests {
     @Test
     public void handleCreateInventoryItem() {
         CreateInventoryItemHandler handler = new CreateInventoryItemHandler(repository);
-        CreateInventoryItem cmd = CreateInventoryItem.Create("Awesome name", 5);
+        CreateInventoryItem cmd = CreateInventoryItem.create("Awesome name", 5);
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
+
+    @Test
+    public void renameInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = new InventoryItem(aggregateId, name, quantity);
+        String newName = "My even awesomer item";
+
+        item.rename(newName);
+
+        ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
+        assertEquals(1, events.size());
+        InventoryItemRenamed evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId); 
+        assertEquals(newName, evt.name); 
+        assertEquals(2, evt.version); 
+    }
+
+    @Test
+    public void handleRenameInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        RenameInventoryItemHandler handler = new RenameInventoryItemHandler(repository);
+        RenameInventoryItem cmd = RenameInventoryItem.create(aggregateId, "Awesome name");
+        InventoryItem item = new InventoryItem(aggregateId, "Stupid name", 2);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
         handler.handle(cmd);
 
         verify(repository).save(any());

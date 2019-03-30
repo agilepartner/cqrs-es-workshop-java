@@ -10,6 +10,14 @@ public final class Guards {
     return reference;
   }
 
+  public static String checkNotNullOrEmpty(String value) {
+    checkNotNull(value);
+    if (value == "")
+      throw new IllegalArgumentException("String should not be empty");
+
+    return value;
+  }
+
   public static void checkArgument(boolean b, String errorMessageTemplate, int p1, int p2) {
     if (!b) {
       throw new IllegalArgumentException(String.format(errorMessageTemplate, p1, p2));

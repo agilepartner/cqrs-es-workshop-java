@@ -207,28 +207,92 @@ public class InventoryItemTests {
 
 ### Rename inventory item
 
+From there, we move on to the *rename* use case.
+
 #### Rename inventory item command
 
 ```Java
+public class RenameInventoryItem extends Command {
+    private static final long serialVersionUID = -5605660277028203474L;
+    public String name;
 
+    public static RenameInventoryItem Create(String name) {
+        RenameInventoryItem cmd = new RenameInventoryItem();
+        cmd.id = UUID.randomUUID();
+        cmd.aggregateId = UUID.randomUUID();
+        cmd.name = name;
+
+        return cmd;
+    }
+}
 ```
 
 #### Rename inventory item event
 
 ```Java
+public class InventoryItemRenamed extends Event {
+    private static final long serialVersionUID = 1L;
+    public final String name;
 
+    public InventoryItemRenamed(UUID aggregateId, String name) {
+        this.aggregateId  = aggregateId;
+        this.name = name;
+    }
+}
 ```
 
 #### Rename inventory public method
 
-```Java
+Before we can rename an item, we need to check if the new name is valid (i.e. not null and not empty) and that it has actually changed. We don't want to raise an event if it hasn't. For that, we need to add some internal state in the aggregate to store the current value of the `name`.
 
+Before we actually had a business rule checking the `name` value, we did not need to maintain the current state. Now we need to, means we need to implement the two extra `apply` methods, one for `InventoryItemCreated`, the other for `InventoryItemRenamed`.
+
+```Java
+public class InventoryItem extends AggregateRoot {
+    private String name;
+
+    public InventoryItem(UUID aggregateId, String name, int quantity) {
+        super(aggregateId);
+        raise(new InventoryItemCreated(aggregateId, name, quantity));
+    }
+
+    public void rename(String name) {
+        Guards.checkNotNull(name);
+        if (this.name != name)
+            raise(new InventoryItemRenamed(id, name));
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCreated evt) {
+        this.name = evt.name;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemRenamed evt) {
+        this.name = evt.name;
+    }
+}
 ```
 
 #### Rename inventory item command handler
 
-```Java
+The *command handler* does three things. It loads the inventory item, calls the public method `rename`, and save the item back.
 
+```Java
+public class RenameInventoryItemHandler implements CommandHandler<RenameInventoryItem> {
+    private Repository<InventoryItem> repository;
+
+    public RenameInventoryItemHandler(Repository<InventoryItem> repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public void handle(RenameInventoryItem command) {
+        InventoryItem item = repository.getById(command.aggregateId);
+        item.rename(command.name);
+        repository.save(item);
+    }
+}
 ```
 
 #### Rename inventory item tests

@@ -11,7 +11,7 @@ public class CreateInventoryItem extends Command {
     public String name;
     public int initialQuantity;
 
-    public static CreateInventoryItem Create(String name, int initialQuantity) {
+    public static CreateInventoryItem create(String name, int initialQuantity) {
         CreateInventoryItem cmd = new CreateInventoryItem();
         cmd.id = UUID.randomUUID();
         cmd.aggregateId = UUID.randomUUID();
