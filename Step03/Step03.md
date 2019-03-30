@@ -186,10 +186,71 @@ public class InventoryItemTests {
 }
 ```
 
+We can also implement a simple test for the *command handler*
+
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    [...]
+
+    @Test
+    public void handleCreateInventoryItem() {
+        CreateInventoryItemHandler handler = new CreateInventoryItemHandler(repository);
+        CreateInventoryItem cmd = CreateInventoryItem.Create("Awesome name", 5);
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
+}
+```
+
 ### Rename inventory item
+
+#### Rename inventory item command
+
+```Java
+
+```
+
+#### Rename inventory item event
+
+```Java
+
+```
+
+#### Rename inventory public method
+
+```Java
+
+```
+
+#### Rename inventory item command handler
+
+```Java
+
+```
+
+#### Rename inventory item tests
+
+```Java
+
+```
 
 ### Check inventory item in
 
+```Java
+
+```
+
 ### Check inventory item out
 
+```Java
+
+```
+
 ### Deactivate inventory item
+
+```Java
+
+```
