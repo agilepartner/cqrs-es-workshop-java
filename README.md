@@ -22,3 +22,4 @@ The code for this workshop is inspired by the following repositories
 
 * [Step 01 : Create an empty Spring Boot app](/Step01/Step01.md)
 * [Step 02 : Create your first aggregate](/Step02/Step02.md)
+* [Step 03 : Implementing our domain](/Step03/Step03.md)
