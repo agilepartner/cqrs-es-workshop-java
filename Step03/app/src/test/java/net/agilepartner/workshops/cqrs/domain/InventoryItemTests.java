@@ -205,4 +205,51 @@ public class InventoryItemTests {
 
         verify(repository).save(any());
     }
+
+    @Test
+    public void deactivateInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+
+        item.deactivate();
+        
+        ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
+        assertEquals(1, events.size());
+        InventoryItemDeactivated evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(2, evt.version);
+    }
+
+    @Test
+    public void deactivateInventoryItemIsIdempotent() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+
+        item.deactivate();
+        item.deactivate();
+        
+        ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
+        assertEquals(1, events.size());
+        InventoryItemDeactivated evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(2, evt.version);
+    }
+
+    @Test
+    public void handleDeactivateInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        DeactivateInventoryItemHandler handler = new DeactivateInventoryItemHandler(repository);
+        DeactivateInventoryItem cmd = DeactivateInventoryItem.create(aggregateId);
+        InventoryItem item = InventoryItem.create(aggregateId, "My awesome item", 5);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
 }

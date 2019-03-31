@@ -8,6 +8,7 @@ import net.agilepartner.workshops.cqrs.core.Guards;
 public class InventoryItem extends AggregateRoot {
     private String name;
     private int stock;
+    private Boolean active;
 
     private InventoryItem(UUID aggregateId, String name, int quantity) {
         super(aggregateId);
@@ -39,10 +40,16 @@ public class InventoryItem extends AggregateRoot {
         raise(InventoryItemCheckedOut.create(id, quantity));
     }
 
+    public void deactivate() {
+        if (active)
+            raise(InventoryItemDeactivated.create(id));
+    }
+
     @SuppressWarnings("unused")
     private void apply(InventoryItemCreated evt) {
         this.name = evt.name;
         this.stock = evt.quantity;
+        this.active = true;
     }
 
     @SuppressWarnings("unused")
@@ -58,5 +65,10 @@ public class InventoryItem extends AggregateRoot {
     @SuppressWarnings("unused")
     private void apply(InventoryItemCheckedOut evt) {
         this.stock -= evt.quantity;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemDeactivated evt) {
+        this.active = false;
     }
 }

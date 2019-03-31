@@ -756,41 +756,223 @@ public class InventoryItemTests {
 #### Deactivate inventory item command
 
 ```Java
+public class DeactivateInventoryItem extends Command {
 
+    private static final long serialVersionUID = 1L;
+
+    public static DeactivateInventoryItem create(UUID aggregateId) {
+        DeactivateInventoryItem cmd = new DeactivateInventoryItem();
+        cmd.id = UUID.randomUUID();
+        cmd.aggregateId = aggregateId;
+
+        return cmd;
+     }
+}
 ```
 
 #### Deactivate inventory item event
 
 ```Java
+public class InventoryItemDeactivated extends Event {
 
+    private static final long serialVersionUID = 1L;
+
+    public static InventoryItemDeactivated create(UUID aggregateId) {
+        InventoryItemDeactivated evt = new InventoryItemDeactivated();
+        evt.aggregateId = aggregateId;
+        return evt;
+    }
+}
 ```
 
 #### Deactivate inventory item public method
 
-```Java
+Here we need to maintain internal state `active` to only raise the event if the inventory item is not already deactivated. Instead of throwing an exception if the item is already deactivated, our implementation choice is simply to ignore that fact. This make that `deactivate` is idempotent.
 
+```Java
+public class InventoryItem extends AggregateRoot {
+    private String name;
+    private int stock;
+    private Boolean active;
+
+    private InventoryItem(UUID aggregateId, String name, int quantity) {
+        super(aggregateId);
+        raise(InventoryItemCreated.create(aggregateId, name, quantity));
+    }
+
+    public static InventoryItem create(UUID aggregateId, String name, int quantity) {
+        return new InventoryItem(aggregateId, name, quantity);
+    }
+
+    public void rename(String name) {
+        Guards.checkNotNullOrEmpty(name);
+        if (this.name != name)
+            raise(InventoryItemRenamed.create(id, name));
+    }
+
+    public void checkIn(int quantity) {
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+        raise(InventoryItemCheckedIn.create(id, quantity));
+    }
+
+    public void checkOut(int quantity) throws NotEnoughStockException {
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+        if (this.stock < quantity)
+            throw new NotEnoughStockException(String.format("Cannot check %d %s out because there is only %d left", quantity, name,this.stock));
+
+        raise(InventoryItemCheckedOut.create(id, quantity));
+    }
+
+    public void deactivate() {
+        if (active)
+            raise(InventoryItemDeactivated.create(id));
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCreated evt) {
+        this.name = evt.name;
+        this.stock = evt.quantity;
+        this.active = true;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemRenamed evt) {
+        this.name = evt.name;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCheckedIn evt) {
+        this.stock += evt.quantity;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCheckedOut evt) {
+        this.stock -= evt.quantity;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemDeactivated evt) {
+        this.active = false;
+    }
+}
 ```
 
 #### Deactivate inventory item command handler
 
 ```Java
+public class DeactivateInventoryItemHandler implements CommandHandler<DeactivateInventoryItem> {
+    private Repository<InventoryItem> repository;
 
+    public DeactivateInventoryItemHandler(Repository<InventoryItem> repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public void handle(DeactivateInventoryItem command) {
+        InventoryItem item = repository.getById(command.aggregateId);
+        item.deactivate();;
+        repository.save(item);
+    }
+}
 ```
 
 #### Deactivate inventory item tests
 
 ```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
 
+    [...]
+
+    @Test
+    public void deactivateInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+
+        item.deactivate();
+
+        ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
+        assertEquals(1, events.size());
+        InventoryItemDeactivated evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(2, evt.version);
+    }
+
+    @Test
+    public void deactivateInventoryItemIsIdempotent() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+
+        item.deactivate();
+        item.deactivate();
+
+        ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
+        assertEquals(1, events.size());
+        InventoryItemDeactivated evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(2, evt.version);
+    }
+}
 ```
 
 ```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
 
+    [...]
+
+    @Test
+    public void handleDeactivateInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        DeactivateInventoryItemHandler handler = new DeactivateInventoryItemHandler(repository);
+        DeactivateInventoryItem cmd = DeactivateInventoryItem.create(aggregateId);
+        InventoryItem item = InventoryItem.create(aggregateId, "My awesome item", 5);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
+}
 ```
 
 ## Conclusion
 
 Pristine domain
+Symmetry
 No accidental complexity
 Well encapsulated
 Pretty heavy considering what it does
 DDD Trade off
+A lot of small class
+
+### SOLID
+
+#### Single Responsibility Principle
+
+* Do one thing
+* Do it well
+* Do it only
+
+#### Open/Close Principle
+
+We can extend behavior easily without breaking changes.
+
+#### Liskov
+
+Message, Command, Event.
+
+#### Interface segregation
+
+Small, well defined interface.
+
+#### Dependency inversion
+
+For handlers
