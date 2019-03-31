@@ -102,4 +102,43 @@ public class InventoryItemTests {
 
         verify(repository).save(any());
     }
+
+    @Test
+    public void checkInventoryItemIn() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+        int checkedInQuantity = 2;
+
+        item.checkIn(checkedInQuantity);
+
+        ArrayList<InventoryItemCheckedIn> events = Helper.getEvents(item, InventoryItemCheckedIn.class);
+        assertEquals(1, events.size());
+        InventoryItemCheckedIn evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId); 
+        assertEquals(checkedInQuantity, evt.quantity); 
+        assertEquals(2, evt.version); 
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void checkInventoryItemInFailsBecauseQuantityIsNotPositive() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        item.checkIn(-1);
+    }
+
+    @Test
+    public void handleCheckInventoryItemIn() {
+        UUID aggregateId = UUID.randomUUID();
+        CheckInventoryItemInHandler handler = new CheckInventoryItemInHandler(repository);
+        CheckInventoryItemIn cmd = CheckInventoryItemIn.create(aggregateId, 2);
+        InventoryItem item = InventoryItem.create(aggregateId, "My awesome item", 5);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
 }

@@ -5,6 +5,8 @@
         "Serializable",
         "Stormers",
         "Superclass",
+        "awesomer",
+        "idempotence",
         "instanceof"
     ]
 }

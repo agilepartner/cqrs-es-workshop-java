@@ -23,6 +23,12 @@ public class InventoryItem extends AggregateRoot {
             raise(InventoryItemRenamed.create(id, name));
     }
 
+    public void checkIn(int quantity) {
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+        raise(InventoryItemCheckedIn.create(id, quantity));
+    }
+
     @SuppressWarnings("unused")
     private void apply(InventoryItemCreated evt) {
         this.name = evt.name;

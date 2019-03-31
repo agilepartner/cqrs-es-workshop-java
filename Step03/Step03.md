@@ -52,7 +52,7 @@ A `CommandHandler` will generally do three things:
 2. Call a public method on the *aggregate*, using the parameters provided in the *command*, to trigger some kind of business behavior.
 3. Save the *aggregate*.
 
-To create the *aggregate*, we will need a *factory* that will ensure the *aggregate* is in a correct initial state. A [factory method](https://en.wikipedia.org/wiki/Factory_method_pattern) is quite useful for that. 
+To create the *aggregate*, we will need a *factory* that will ensure the *aggregate* is in a correct initial state. A [factory method](https://en.wikipedia.org/wiki/Factory_method_pattern) is quite useful for that.
 
 Loading and saving the *aggregate* is delegated to another component that is called a `Repository`.
 
@@ -183,10 +183,10 @@ public class InventoryItemTests {
         ArrayList<InventoryItemCreated> events = Helper.getEvents(item, InventoryItemCreated.class);
         assertEquals(1, events.size());
         InventoryItemCreated evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId); 
-        assertEquals(name, evt.name); 
-        assertEquals(quantity, evt.quantity); 
-        assertEquals(1, evt.version); 
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(name, evt.name);
+        assertEquals(quantity, evt.quantity);
+        assertEquals(1, evt.version);
     }
 }
 ```
@@ -298,7 +298,7 @@ public class RenameInventoryItemHandler implements CommandHandler<RenameInventor
 
     public RenameInventoryItemHandler(Repository<InventoryItem> repository) {
         this.repository = repository;
-    } 
+    }
 
     @Override
     public void handle(RenameInventoryItem command) {
@@ -330,9 +330,9 @@ public class InventoryItemTests {
         ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
         assertEquals(1, events.size());
         InventoryItemRenamed evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId); 
-        assertEquals(newName, evt.name); 
-        assertEquals(2, evt.version); 
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(newName, evt.name);
+        assertEquals(2, evt.version);
     }
 
     @Test()
@@ -387,8 +387,132 @@ public class InventoryItemTests {
 
 ### Check inventory item in
 
-```Java
+#### Check inventory item in command
 
+```Java
+public class CheckInventoryItemIn extends Command {
+    private static final long serialVersionUID = 1L;
+    public int quantity;
+
+    public static CheckInventoryItemIn create(UUID aggregateId, int quantity) {
+        CheckInventoryItemIn cmd = new CheckInventoryItemIn();
+        cmd.id = UUID.randomUUID();
+        cmd.aggregateId = aggregateId;
+        cmd.quantity = quantity;
+
+        return cmd;
+    }
+}
+```
+
+#### Check inventory item in event
+
+```Java
+public class InventoryItemCheckedIn extends Event {
+    private static final long serialVersionUID = 1L;
+    public int quantity;
+
+    public static InventoryItemCheckedIn create(UUID aggregateId, int quantity) {
+        InventoryItemCheckedIn evt = new InventoryItemCheckedIn();
+        evt.aggregateId = aggregateId;
+        evt.quantity = quantity;
+        return evt;
+    }
+}
+```
+
+#### Check inventory item in public method
+
+```Java
+public class InventoryItem extends AggregateRoot {
+
+    [...]
+
+    public void checkIn(int quantity) {
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+        raise(InventoryItemCheckedIn.create(id, quantity));
+    }
+
+    [...]
+
+}
+```
+
+#### Check inventory item in command handler
+
+```Java
+public class CheckInventoryItemInHandler implements CommandHandler<CheckInventoryItemIn> {
+    private Repository<InventoryItem> repository;
+
+    public CheckInventoryItemInHandler(Repository<InventoryItem> repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public void handle(CheckInventoryItemIn command) {
+        InventoryItem item = repository.getById(command.aggregateId);
+        item.checkIn(command.quantity);
+        repository.save(item);
+    }
+}
+```
+
+#### Check inventory item in tests
+
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    [...]
+
+    @Test
+    public void checkInventoryItemIn() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+        int checkedInQuantity = 2;
+
+        item.checkIn(checkedInQuantity);
+
+        ArrayList<InventoryItemCheckedIn> events = Helper.getEvents(item, InventoryItemCheckedIn.class);
+        assertEquals(1, events.size());
+        InventoryItemCheckedIn evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(checkedInQuantity, evt.quantity);
+        assertEquals(2, evt.version);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void checkInventoryItemInFailsBecauseQuantityIsNotPositive() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        item.checkIn(-1);
+    }
+}
+```
+
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    [...]
+
+    @Test
+    public void handleCheckInventoryItemIn() {
+        UUID aggregateId = UUID.randomUUID();
+        CheckInventoryItemInHandler handler = new CheckInventoryItemInHandler(repository);
+        CheckInventoryItemIn cmd = CheckInventoryItemIn.create(aggregateId, 2);
+        InventoryItem item = InventoryItem.create(aggregateId, "My awesome item", 5);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
+}
 ```
 
 ### Check inventory item out
