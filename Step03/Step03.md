@@ -974,3 +974,10 @@ In the core, we have defined a group of small, well defined interfaces and abstr
 ### Dependency Inversion Principle
 
 We have seen that all *command handlers* need a `Repository`. So far, we don't even have a concrete implementation of this `Repository`, but we were able to inverse dependency by passing the `Repository` as argument in the constructor of all our handlers.
+
+## What's next
+
+In the next step, we will wire everything up and see what we can do about the concrete implementation of the `Repository`.
+
+* Go to [Step 03](../Step04/Step04.md)
+* Go back to [Home](../README.md)

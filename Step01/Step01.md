@@ -51,3 +51,10 @@ hs_err_pid*
 ## Run the tests
 
 To make sure that everything works fine, open [DemoApplicationTests](app/src/test/java/net/agilepartner/workshops/cqrs/app/DemoApplicationTests.java) and run the tests using your IDE.
+
+## What's next
+
+In the next step, we will add our core interfaces and classes.
+
+* Go to [Step 02](../Step02/Step02.md)
+* Go back to [Home](../README.md)
