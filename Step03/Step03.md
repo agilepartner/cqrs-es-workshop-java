@@ -517,12 +517,280 @@ public class InventoryItemTests {
 
 ### Check inventory item out
 
-```Java
+#### Check inventory item out command
 
+```Java
+public class CheckInventoryItemOut extends Command {
+    private static final long serialVersionUID = 2660471147867347530L;
+    public int quantity;
+
+    public static CheckInventoryItemOut create(UUID aggregateId, int quantity) {
+        CheckInventoryItemOut cmd = new CheckInventoryItemOut();
+        cmd.id = UUID.randomUUID();
+        cmd.aggregateId = aggregateId;
+        cmd.quantity = quantity;
+
+        return cmd;
+    }
+}
+```
+
+#### Check inventory item out event
+
+```Java
+public class InventoryItemCheckedOut extends Event {
+    private static final long serialVersionUID = -8744398303363497614L;
+    public int quantity;
+
+    public static InventoryItemCheckedOut create(UUID aggregateId, int quantity) {
+        InventoryItemCheckedOut evt = new InventoryItemCheckedOut();
+        evt.aggregateId = aggregateId;
+        evt.quantity = quantity;
+        return evt;
+    }
+}
+```
+
+#### Check inventory item out public method
+
+```Java
+public class InventoryItem extends AggregateRoot {
+    private String name;
+    private int stock;
+
+    private InventoryItem(UUID aggregateId, String name, int quantity) {
+        super(aggregateId);
+        raise(InventoryItemCreated.create(aggregateId, name, quantity));
+    }
+
+    public static InventoryItem create(UUID aggregateId, String name, int quantity) {
+        return new InventoryItem(aggregateId, name, quantity);
+    }
+
+    public void rename(String name) {
+        Guards.checkNotNullOrEmpty(name);
+        if (this.name != name)
+            raise(InventoryItemRenamed.create(id, name));
+    }
+
+    public void checkIn(int quantity) {
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+        raise(InventoryItemCheckedIn.create(id, quantity));
+    }
+
+    public void checkOut(int quantity) throws NotEnoughStockException {
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+        if (this.stock < quantity)
+            throw new NotEnoughStockException(String.format("Cannot check %d %s out because there is only %d left", quantity, name,this.stock));
+
+        raise(InventoryItemCheckedOut.create(id, quantity));
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCreated evt) {
+        this.name = evt.name;
+        this.stock = evt.quantity;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemRenamed evt) {
+        this.name = evt.name;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCheckedIn evt) {
+        this.stock += evt.quantity;
+    }
+
+    @SuppressWarnings("unused")
+    private void apply(InventoryItemCheckedOut evt) {
+        this.stock -= evt.quantity;
+    }
+}
+```
+
+Notice that, because we have a business rule that says we cannot check out more items than the ones we have in stock, we need to maintain the `stock` as internal state to be able to check against the current stock value before we can do a check out. Whenever there is not enough stock to fulfill the checkout command, we raise a `NotEnoughStockException`.
+
+Of course, we have to create the exception class.
+
+```Java
+public class NotEnoughStockException extends Exception {
+
+    private static final long serialVersionUID = -6578758996745570912L;
+
+    public NotEnoughStockException(String message) {
+        super(message);
+    }
+}
+```
+
+We also had to adapt some of the private `apply` methods to take `stock` into account.
+
+#### Check inventory item out command handler
+
+This *command handler* is a little bit trickier than the others. This is the first time that a *command handler* has to deal with a checked exception. The abstract class `CommandHandler` defines a method `handle` that does not declare throwing any exception. But in that case we will need to declare the `handle` method as throwing a `NotEnoughStockException`.
+
+```Java
+public class CheckInventoryItemOutHandler implements CommandHandler<CheckInventoryItemOut> {
+    private Repository<InventoryItem> repository;
+
+    public CheckInventoryItemOutHandler(Repository<InventoryItem> repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public void handle(CheckInventoryItemOut command) throws NotEnoughStockException {
+        InventoryItem item = repository.getById(command.aggregateId);
+        item.checkOut(command.quantity);
+        repository.save(item);
+    }
+}
+```
+
+To do so without getting a compile error, we need do define a new exception type called `DomainException`.
+
+```Java
+public class DomainException extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
+    public DomainException(String message) {
+        super(message);
+    }
+}
+```
+
+We then need to adapt the `CommandHandler` interface.
+
+```Java
+public interface CommandHandler<T extends Command> {
+    public void handle(T command) throws DomainException;
+}
+```
+
+#### Check inventory item out tests
+
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    [...]
+
+    @Test
+    public void checkInventoryItemOut() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+        int checkedOutQuantity = 2;
+
+        try {
+            item.checkOut(checkedOutQuantity);
+        } catch (NotEnoughStockException e) {
+            Assert.fail("Should not have raised exception");
+        }
+
+        ArrayList<InventoryItemCheckedOut> events = Helper.getEvents(item, InventoryItemCheckedOut.class);
+        assertEquals(1, events.size());
+        InventoryItemCheckedOut evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId);
+        assertEquals(checkedOutQuantity, evt.quantity);
+        assertEquals(2, evt.version);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void checkInventoryItemOutFailsBecauseQuantityIsNotPositive() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        try {
+            item.checkOut(-1);
+        } catch (NotEnoughStockException e) {
+            Assert.fail("Should not have raised exception");
+        }
+    }
+
+    @Test
+    public void checkInventoryItemOutFailsBecauseNotEnoughStock() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        try {
+            item.checkOut(10);
+            Assert.fail("Should have raised NotEnoughStockException");
+        } catch (NotEnoughStockException e) {
+            assertEquals("Cannot check 10 My awesome item out because there is only 5 left", e.getMessage());
+        }
+    }
+}
+```
+
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    [...]
+
+    @Test
+    public void handleCheckInventoryItemOut() {
+        UUID aggregateId = UUID.randomUUID();
+        CheckInventoryItemOutHandler handler = new CheckInventoryItemOutHandler(repository);
+        CheckInventoryItemOut cmd = CheckInventoryItemOut.create(aggregateId, 2);
+        InventoryItem item = InventoryItem.create(aggregateId, "My awesome item", 5);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
+        try {
+            handler.handle(cmd);
+        } catch (NotEnoughStockException e) {
+            Assert.fail("Should not have raised exception");
+        }
+
+        verify(repository).save(any());
+    }
+}
 ```
 
 ### Deactivate inventory item
 
+#### Deactivate inventory item command
+
 ```Java
 
 ```
+
+#### Deactivate inventory item event
+
+```Java
+
+```
+
+#### Deactivate inventory item public method
+
+```Java
+
+```
+
+#### Deactivate inventory item command handler
+
+```Java
+
+```
+
+#### Deactivate inventory item tests
+
+```Java
+
+```
+
+```Java
+
+```
+
+## Conclusion
+
+Pristine domain
+No accidental complexity
+Well encapsulated
+Pretty heavy considering what it does
+DDD Trade off

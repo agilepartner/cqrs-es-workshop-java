@@ -58,6 +58,7 @@ public abstract class AggregateRoot {
             throw new RuntimeException(ex);
         } catch (NoSuchMethodException ex) {
             // Ugly exception swallowing. This should be logged somewhere
+            ex.printStackTrace();
         }
     }
 
