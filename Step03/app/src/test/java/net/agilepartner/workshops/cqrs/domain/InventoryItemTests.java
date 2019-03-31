@@ -27,7 +27,7 @@ public class InventoryItemTests {
         UUID aggregateId = UUID.randomUUID();
         String name = "My awesome item";
         int quantity = 5;
-        InventoryItem item = new InventoryItem(aggregateId, name, quantity);
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
 
         ArrayList<InventoryItemCreated> events = Helper.getEvents(item, InventoryItemCreated.class);
         assertEquals(1, events.size());
@@ -52,7 +52,7 @@ public class InventoryItemTests {
         UUID aggregateId = UUID.randomUUID();
         String name = "My awesome item";
         int quantity = 5;
-        InventoryItem item = new InventoryItem(aggregateId, name, quantity);
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
         String newName = "My even awesomer item";
 
         item.rename(newName);
@@ -65,12 +65,36 @@ public class InventoryItemTests {
         assertEquals(2, evt.version); 
     }
 
+    @Test()
+    public void renameInventoryItemDoesNotApplyWhenSameName() {
+        String name = "My awesome item";
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), name, 5);
+
+        item.rename(name);
+        ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
+        assertEquals(0, events.size());
+    }
+
+    @Test(expected=NullPointerException.class)
+    public void renameInventoryItemFailsBecauseNull() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        item.rename(null);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void renameInventoryItemFailsBecauseEmpty() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        item.rename("");
+    }
+
     @Test
     public void handleRenameInventoryItem() {
         UUID aggregateId = UUID.randomUUID();
         RenameInventoryItemHandler handler = new RenameInventoryItemHandler(repository);
         RenameInventoryItem cmd = RenameInventoryItem.create(aggregateId, "Awesome name");
-        InventoryItem item = new InventoryItem(aggregateId, "Stupid name", 2);
+        InventoryItem item = InventoryItem.create(aggregateId, "Stupid name", 2);
 
         when(repository.getById(aggregateId)).thenReturn(item);
 

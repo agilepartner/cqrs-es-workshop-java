@@ -8,15 +8,19 @@ import net.agilepartner.workshops.cqrs.core.Guards;
 public class InventoryItem extends AggregateRoot {
     private String name;
 
-    public InventoryItem(UUID aggregateId, String name, int quantity) {
+    private InventoryItem(UUID aggregateId, String name, int quantity) {
         super(aggregateId);
-        raise(new InventoryItemCreated(aggregateId, name, quantity));
+        raise(InventoryItemCreated.create(aggregateId, name, quantity));
+    }
+
+    public static InventoryItem create(UUID aggregateId, String name, int quantity) {
+        return new InventoryItem(aggregateId, name, quantity);
     }
 
     public void rename(String name) {
-        Guards.checkNotNull(name);
+        Guards.checkNotNullOrEmpty(name);
         if (this.name != name)
-            raise(new InventoryItemRenamed(id, name));
+            raise(InventoryItemRenamed.create(id, name));
     }
 
     @SuppressWarnings("unused")

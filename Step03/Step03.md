@@ -97,7 +97,7 @@ public class CreateInventoryItem extends Command {
     public String name;
     public int initialQuantity;
 
-    public static CreateInventoryItem Create(String name, int initialQuantity) {
+    public static CreateInventoryItem create(String name, int initialQuantity) {
         CreateInventoryItem cmd = new CreateInventoryItem();
         cmd.id = UUID.randomUUID();
         cmd.aggregateId = UUID.randomUUID();
@@ -115,27 +115,33 @@ The domain event is pretty straight forward. It needs the `aggregateId`, a `name
 
 ```Java
 public class InventoryItemCreated extends Event {
-    public final String name;
-    public final int quantity;
+    private static final long serialVersionUID = -5604800934233512172L;
+    public String name;
+    public int quantity;
 
-    public InventoryItemCreated(UUID aggregateId, String name, int quantity) {
-        this.aggregateId  = aggregateId;
-        this.name = name;
-        this.quantity = quantity;
+    public static InventoryItemCreated create(UUID aggregateId, String name, int quantity) {
+        InventoryItemCreated evt = new InventoryItemCreated();
+        evt.aggregateId  = aggregateId;
+        evt.name = name;
+        evt.quantity = quantity;
+        return evt;
     }
 }
 ```
 
 #### Create inventory item aggregate
 
-To create the *aggregate*, we just need a constructor. No real need for a *factory method* here, because the *aggregate* is very simple and only composed of the `AggregateRoot` itself.
+To create the *aggregate*, we would just need a constructor, because the *aggregate* is very simple and only composed of the `AggregateRoot` itself. However a *factory method* is slightly more elegant and easier to use form the outside. So we implement a *private* constructor and a static method `create`.
 
 ```Java
 public class InventoryItem extends AggregateRoot {
-
-    public InventoryItem(UUID aggregateId, String name, int quantity) {
+    private InventoryItem(UUID aggregateId, String name, int quantity) {
         super(aggregateId);
-        raise(new InventoryItemCreated(aggregateId, name, quantity));
+        raise(InventoryItemCreated.create(aggregateId, name, quantity));
+    }
+
+    public static InventoryItem create(UUID aggregateId, String name, int quantity) {
+        return new InventoryItem(aggregateId, name, quantity);
     }
 }
 ```
@@ -146,15 +152,15 @@ The *command handler* does only two things. First create the *aggregate*, second
 
 ```Java
 public class CreateInventoryItemHandler implements CommandHandler<CreateInventoryItem> {
-
     private Repository<InventoryItem> repository;
 
     public CreateInventoryItemHandler(Repository<InventoryItem> repository) {
         this.repository = repository;
-    } 
+    }
 
+    @Override
     public void handle(CreateInventoryItem command) {
-        InventoryItem item = new InventoryItem(command.aggregateId, command.name, command.initialQuantity);
+        InventoryItem item = InventoryItem.create(command.aggregateId, command.name, command.initialQuantity);
         repository.save(item);
     }
 }
@@ -167,37 +173,39 @@ The test is also straight forward. We just created a new `Helper` class that def
 ```Java
 @RunWith(SpringRunner.class)
 public class InventoryItemTests {
-
     @Test
     public void createInventoryItem() {
         UUID aggregateId = UUID.randomUUID();
         String name = "My awesome item";
         int quantity = 5;
-        InventoryItem item = new InventoryItem(aggregateId, name, quantity);
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
 
         ArrayList<InventoryItemCreated> events = Helper.getEvents(item, InventoryItemCreated.class);
         assertEquals(1, events.size());
         InventoryItemCreated evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(name, evt.name);
-        assertEquals(quantity, evt.quantity);
-        assertEquals(1, evt.version);
+        assertEquals(aggregateId, evt.aggregateId); 
+        assertEquals(name, evt.name); 
+        assertEquals(quantity, evt.quantity); 
+        assertEquals(1, evt.version); 
     }
 }
 ```
 
-We can also implement a simple test for the *command handler*
+We can also implement a simple test for the *command handler*. Because the *command handler* has a dependency on the `Repository<InventoryItem>`, we will be needing a mock.
 
 ```Java
 @RunWith(SpringRunner.class)
 public class InventoryItemTests {
+
+    @Mock
+    public Repository<InventoryItem> repository;
 
     [...]
 
     @Test
     public void handleCreateInventoryItem() {
         CreateInventoryItemHandler handler = new CreateInventoryItemHandler(repository);
-        CreateInventoryItem cmd = CreateInventoryItem.Create("Awesome name", 5);
+        CreateInventoryItem cmd = CreateInventoryItem.create("Awesome name", 5);
         handler.handle(cmd);
 
         verify(repository).save(any());
@@ -216,10 +224,10 @@ public class RenameInventoryItem extends Command {
     private static final long serialVersionUID = -5605660277028203474L;
     public String name;
 
-    public static RenameInventoryItem Create(String name) {
+    public static RenameInventoryItem create(UUID aggregateId, String name) {
         RenameInventoryItem cmd = new RenameInventoryItem();
         cmd.id = UUID.randomUUID();
-        cmd.aggregateId = UUID.randomUUID();
+        cmd.aggregateId = aggregateId;
         cmd.name = name;
 
         return cmd;
@@ -232,11 +240,13 @@ public class RenameInventoryItem extends Command {
 ```Java
 public class InventoryItemRenamed extends Event {
     private static final long serialVersionUID = 1L;
-    public final String name;
+    public String name;
 
-    public InventoryItemRenamed(UUID aggregateId, String name) {
-        this.aggregateId  = aggregateId;
-        this.name = name;
+    public static InventoryItemRenamed create(UUID aggregateId, String name) {
+        InventoryItemRenamed evt = new InventoryItemRenamed();
+        evt.aggregateId  = aggregateId;
+        evt.name = name;
+        return evt;
     }
 }
 ```
@@ -251,15 +261,19 @@ Before we actually had a business rule checking the `name` value, we did not nee
 public class InventoryItem extends AggregateRoot {
     private String name;
 
-    public InventoryItem(UUID aggregateId, String name, int quantity) {
+    private InventoryItem(UUID aggregateId, String name, int quantity) {
         super(aggregateId);
-        raise(new InventoryItemCreated(aggregateId, name, quantity));
+        raise(InventoryItemCreated.create(aggregateId, name, quantity));
+    }
+
+    public static InventoryItem create(UUID aggregateId, String name, int quantity) {
+        return new InventoryItem(aggregateId, name, quantity);
     }
 
     public void rename(String name) {
-        Guards.checkNotNull(name);
+        Guards.checkNotNullOrEmpty(name);
         if (this.name != name)
-            raise(new InventoryItemRenamed(id, name));
+            raise(InventoryItemRenamed.create(id, name));
     }
 
     @SuppressWarnings("unused")
@@ -284,7 +298,7 @@ public class RenameInventoryItemHandler implements CommandHandler<RenameInventor
 
     public RenameInventoryItemHandler(Repository<InventoryItem> repository) {
         this.repository = repository;
-    }
+    } 
 
     @Override
     public void handle(RenameInventoryItem command) {
@@ -298,7 +312,77 @@ public class RenameInventoryItemHandler implements CommandHandler<RenameInventor
 #### Rename inventory item tests
 
 ```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
 
+    [...]
+
+    @Test
+    public void renameInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+        String newName = "My even awesomer item";
+
+        item.rename(newName);
+
+        ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
+        assertEquals(1, events.size());
+        InventoryItemRenamed evt = events.get(0);
+        assertEquals(aggregateId, evt.aggregateId); 
+        assertEquals(newName, evt.name); 
+        assertEquals(2, evt.version); 
+    }
+
+    @Test()
+    public void renameInventoryItemDoesNotApplyWhenSameName() {
+        String name = "My awesome item";
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), name, 5);
+
+        item.rename(name);
+        ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
+        assertEquals(0, events.size());
+    }
+
+    @Test(expected=NullPointerException.class)
+    public void renameInventoryItemFailsBecauseNull() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        item.rename(null);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void renameInventoryItemFailsBecauseEmpty() {
+        InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
+
+        item.rename("");
+    }
+}
+```
+
+We can also write a test for the *command handler*.
+
+```Java
+@RunWith(SpringRunner.class)
+public class InventoryItemTests {
+
+    [...]
+
+    @Test
+    public void handleRenameInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        RenameInventoryItemHandler handler = new RenameInventoryItemHandler(repository);
+        RenameInventoryItem cmd = RenameInventoryItem.create(aggregateId, "Awesome name");
+        InventoryItem item = InventoryItem.create(aggregateId, "Stupid name", 2);
+
+        when(repository.getById(aggregateId)).thenReturn(item);
+
+        handler.handle(cmd);
+
+        verify(repository).save(any());
+    }
+}
 ```
 
 ### Check inventory item in

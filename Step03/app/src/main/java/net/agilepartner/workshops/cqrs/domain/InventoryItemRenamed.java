@@ -6,10 +6,12 @@ import net.agilepartner.workshops.cqrs.core.Event;
 
 public class InventoryItemRenamed extends Event {
     private static final long serialVersionUID = 1L;
-    public final String name;
+    public String name;
 
-    public InventoryItemRenamed(UUID aggregateId, String name) {
-        this.aggregateId  = aggregateId;
-        this.name = name;
+    public static InventoryItemRenamed create(UUID aggregateId, String name) {
+        InventoryItemRenamed evt = new InventoryItemRenamed();
+        evt.aggregateId  = aggregateId;
+        evt.name = name;
+        return evt;
     }
 }
