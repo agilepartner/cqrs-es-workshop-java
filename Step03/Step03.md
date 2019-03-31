@@ -945,34 +945,32 @@ public class InventoryItemTests {
 
 ## Conclusion
 
-Pristine domain
-Symmetry
-No accidental complexity
-Well encapsulated
-Pretty heavy considering what it does
-DDD Trade off
-A lot of small class
+There we go. The domain for inventory item is fully implemented and tested. If you take a close look at the `InventoryItem` class, you will see that it is in the end pretty simple, with a lot of small methods. The domain is actually quite pristine, with behavior is well encapsulated within the *aggregate*, and no accidental complexity or dependency. Yes there are a lot of classes considering the simplicity of this domain, the there is also a nice symmetry in the domain, which makes it easy to resonate about.
 
-### SOLID
+When you want to implement a system based on *Domain-Driven Design*, you will have some trade off to take into account. DDD add some complexity, because we want our code to be as clean and encapsulated as possible. We could have implemented the same behavior in a much simpler way. But in the long run, the *Domain-Driven Design* approach will be better at coping with increasing complexity and changing business rules.
 
-#### Single Responsibility Principle
+There are a lot of small classes which is usually a good sign. Let's take a closer look and see if we are SOLID.
+
+### Single Responsibility Principle
+
+All of our small classes respect the Single Responsibility Principle
 
 * Do one thing
 * Do it well
 * Do it only
 
-#### Open/Close Principle
+### Open/Close Principle
 
-We can extend behavior easily without breaking changes.
+We can extend behavior easily by adding new public methods to the *aggregate* without breaking changes. This is basically what we have done all along. How difficult would it be to add a *reactivate* use case?
 
-#### Liskov
+### Liskov Substitution Principle
 
-Message, Command, Event.
+We are not there yet, but `Command`s and `Event`s are both `Message`s. For the moment, we only have the ability to handle *commands*. But we will soon see that we might need to also handle *events*. For that, we will probably define the notion of `MessageHandler` that could work either for a `Command` or an `Event`. More about that in the next steps of the workshop.
 
-#### Interface segregation
+### Interface Segregation Principle
 
-Small, well defined interface.
+In the core, we have defined a group of small, well defined interfaces and abstract classes that help us build our domain. We will add more in a near future.
 
-#### Dependency inversion
+### Dependency Inversion Principle
 
-For handlers
+We have seen that all *command handlers* need a `Repository`. So far, we don't even have a concrete implementation of this `Repository`, but we were able to inverse dependency by passing the `Repository` as argument in the constructor of all our handlers.
