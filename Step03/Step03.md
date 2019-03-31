@@ -979,5 +979,5 @@ We have seen that all *command handlers* need a `Repository`. So far, we don't e
 
 In the next step, we will wire everything up and see what we can do about the concrete implementation of the `Repository`.
 
-* Go to [Step 03](../Step04/Step04.md)
+* Go to [Step 04](../Step04/Step04.md)
 * Go back to [Home](../README.md)
