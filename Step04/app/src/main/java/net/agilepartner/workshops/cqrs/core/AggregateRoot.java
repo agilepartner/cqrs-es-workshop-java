@@ -17,6 +17,8 @@ public abstract class AggregateRoot {
         this.id = id;
     }
 
+    public UUID getId() { return id; }
+
     public void markChangesAsCommitted() {
         changes.clear();
     }

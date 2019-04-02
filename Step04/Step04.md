@@ -124,7 +124,60 @@ public class InMemoryCommandDispatcherTests {
 }
 ```
 
-Note that this is a very naive and simple implementation. Later in this workshop, we will implement a more robust dispatcher using Kafka.
+Note that this is a very naive and simple implementation. Later in this workshop, we will implement a more robust dispatcher using Akka and Kafka.
+
+## Repository
+
+Now we have a way to wire all *command handler*s. However, we need one more thing before we can move on building a quick test app. All *command handler*s have a dependency on a `Repository` that has for the moment no concrete implementation. We need to solve that.
+
+A repository has a clear responsibility to load and save an aggregate. For the moment, we can start with a simple in-memory implementation.
+
+```Java
+public class InMemoryRepository<T extends AggregateRoot> implements Repository<T> {
+    private final ConcurrentHashMap<UUID, T> map = new ConcurrentHashMap<UUID, T>();
+
+    @Override
+    public T getById(UUID id) {
+        return map.get((Object) id);
+    }
+
+    @Override
+    public void save(T aggregate) {
+        map.putIfAbsent(aggregate.getId(), aggregate);
+    }
+}
+```
+
+Note that we had to add `getId` on `AggregateRoot`. This does break encapsulation a little, but it's acceptable at this stage.
+
+Here are the tests for the repository
+
+```Java
+@RunWith(SpringRunner.class)
+public class InMemoryRepositoryTests {
+
+    @Test
+    public void getByIdDoesNotReturnValue() {
+        InMemoryRepository<MyAggregate> repository = new InMemoryRepository<MyAggregate>();
+        MyAggregate aggregate = repository.getById(UUID.randomUUID());
+        assertNull(aggregate);
+    }
+
+    @Test
+    public void saveAndGetByIdReturnsValue() {
+        InMemoryRepository<MyAggregate> repository = new InMemoryRepository<MyAggregate>();
+        UUID aggregateId = UUID.randomUUID();
+
+        repository.save(new MyAggregate(aggregateId));
+        MyAggregate aggregate = repository.getById(aggregateId);
+
+        assertNotNull(aggregate);
+        assertEquals(aggregateId, aggregate.getId());
+    }
+}
+```
+
+## Test app
 
 ```Java
 
