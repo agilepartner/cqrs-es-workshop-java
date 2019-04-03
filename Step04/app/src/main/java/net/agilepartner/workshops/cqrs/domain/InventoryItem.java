@@ -19,19 +19,22 @@ public class InventoryItem extends AggregateRoot {
         return new InventoryItem(aggregateId, name, quantity);
     }
 
-    public void rename(String name) {
+    public void rename(String name) throws InventoryItemDeactivatedException {
+        checkActivated();
         Guards.checkNotNullOrEmpty(name);
         if (this.name != name)
             raise(InventoryItemRenamed.create(id, name));
     }
 
-    public void checkIn(int quantity) {
+    public void checkIn(int quantity) throws InventoryItemDeactivatedException {
+        checkActivated();
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive");
         raise(InventoryItemCheckedIn.create(id, quantity));
     }
 
-    public void checkOut(int quantity) throws NotEnoughStockException {
+    public void checkOut(int quantity) throws NotEnoughStockException, InventoryItemDeactivatedException {
+        checkActivated();
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive");
         if (this.stock < quantity)
@@ -43,6 +46,11 @@ public class InventoryItem extends AggregateRoot {
     public void deactivate() {
         if (active)
             raise(InventoryItemDeactivated.create(id));
+    }
+
+    private void checkActivated() throws InventoryItemDeactivatedException {
+        if (!active)
+            throw new InventoryItemDeactivatedException(String.format("Inventory Item %s (id %s) is deactivated", name, id.toString()));
     }
 
     @SuppressWarnings("unused")

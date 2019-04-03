@@ -177,15 +177,79 @@ public class InMemoryRepositoryTests {
 }
 ```
 
-## Test app
+## End to end tests
+
+We have now the ability to write end to end tests
 
 ```Java
+public class End2EndTests {
 
+    @Test
+    public void run() {
+        Repository<InventoryItem> repository = new InMemoryRepository<InventoryItem>();
+
+        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
+        resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
+        resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);
+        resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
+        resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
+
+        CommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+
+        CreateInventoryItem createApple = CreateInventoryItem.create("Apple", 10);
+        CreateInventoryItem createBanana = CreateInventoryItem.create("Banana", 7);
+        CreateInventoryItem createOrange = CreateInventoryItem.create("Orange", 5);
+
+        try {
+            //Create fruits
+            dispatcher.dispatch(createApple);
+            dispatcher.dispatch(createBanana);
+            dispatcher.dispatch(createOrange);
+
+            //Check out
+            dispatcher.dispatch(CheckInventoryItemOut.create(createApple.aggregateId, 5)); // 5 apples left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createBanana.aggregateId, 5)); // 2 bananas left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // 0 oranges left
+
+            //Checking out too many oranges
+            try {
+                dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // Cannot check more oranges out
+                Assert.fail("Should have raised NotEnoughStockException");
+            } catch (NotEnoughStockException ex) { }
+
+            //Renaming organge to pear
+            dispatcher.dispatch(RenameInventoryItem.create(createOrange.aggregateId, "Pear")); // 0 pears left
+
+            //Resupplying bananas (everybody loves bananas)
+            dispatcher.dispatch(CheckInventoryItemIn.create(createBanana.aggregateId, 3)); // 5 bananas left
+
+            //Nobody wants apples anymore
+            dispatcher.dispatch(DeactivateInventoryItem.create(createApple.aggregateId));  // apple item deactivated
+
+            //Can't check in an item that is deactivated
+            try {
+                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.aggregateId, 5)); 
+                Assert.fail("Should not be able to check apples in because the item is deactivated");
+            } catch (InventoryItemDeactivatedException ex) { }
+        } catch (DomainException e) {
+            Assert.fail("Should not have raised any exception");
+        }
+    }
+}
 ```
+
+## Conclusion
+
+In this step, we have wired up our domain to our command handlers thanks to some infrastructure, mainly running in memory. In memory is ok for testing, but it's definitely not sufficient for production grade software. We will need something more robust. Concurrent hash map are great when you run in a single process, but we will need to handle concurrency better than that if we want our application to scale out. 
+
+With our current implementation, all the calls are synchronous. This means that the user has to wait until the whole process is over before we get the hand back to him/her. This is fine for our naive example where processing time is very short, but imagine what is would be with longer processes. We probably want to level the load and start implementing asynchronous processing for long running process.
+
+But there is something even more disturbing. We are implementing a CQRS system. Where is the *query* side ?
 
 ## What's next
 
-In the next step, we will ...
+In the next step, we will tackle the read side of our system by implementing materialized views.
 
 * Go to [Step 05](../Step05/Step05.md)
 * Go back to [Home](../README.md)

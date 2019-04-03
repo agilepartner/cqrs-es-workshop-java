@@ -56,7 +56,11 @@ public class InventoryItemTests {
         InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
         String newName = "My even awesomer item";
 
-        item.rename(newName);
+        try {
+            item.rename(newName);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
 
         ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
         assertEquals(1, events.size());
@@ -71,7 +75,11 @@ public class InventoryItemTests {
         String name = "My awesome item";
         InventoryItem item = InventoryItem.create(UUID.randomUUID(), name, 5);
 
-        item.rename(name);
+        try {
+            item.rename(name);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
         ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
         assertEquals(0, events.size());
     }
@@ -80,14 +88,22 @@ public class InventoryItemTests {
     public void renameInventoryItemFailsBecauseNull() {
         InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
 
-        item.rename(null);
+        try {
+            item.rename(null);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void renameInventoryItemFailsBecauseEmpty() {
         InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
 
-        item.rename("");
+        try {
+            item.rename("");
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
     }
 
     @Test
@@ -99,7 +115,11 @@ public class InventoryItemTests {
 
         when(repository.getById(aggregateId)).thenReturn(item);
 
-        handler.handle(cmd);
+        try {
+            handler.handle(cmd);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
 
         verify(repository).save(any());
     }
@@ -112,7 +132,11 @@ public class InventoryItemTests {
         InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
         int checkedInQuantity = 2;
 
-        item.checkIn(checkedInQuantity);
+        try {
+            item.checkIn(checkedInQuantity);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
 
         ArrayList<InventoryItemCheckedIn> events = Helper.getEvents(item, InventoryItemCheckedIn.class);
         assertEquals(1, events.size());
@@ -126,7 +150,11 @@ public class InventoryItemTests {
     public void checkInventoryItemInFailsBecauseQuantityIsNotPositive() {
         InventoryItem item = InventoryItem.create(UUID.randomUUID(), "My awesome item", 5);
 
-        item.checkIn(-1);
+        try {
+            item.checkIn(-1);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
     }
 
     @Test
@@ -138,7 +166,11 @@ public class InventoryItemTests {
 
         when(repository.getById(aggregateId)).thenReturn(item);
 
-        handler.handle(cmd);
+        try {
+            handler.handle(cmd);
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
+        }
 
         verify(repository).save(any());
     }
@@ -154,7 +186,9 @@ public class InventoryItemTests {
         try {
             item.checkOut(checkedOutQuantity);
         } catch (NotEnoughStockException e) {
-            Assert.fail("Should not have raised exception");
+            Assert.fail("Should not have raised NotEnoughStockException");
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
         }
 
         ArrayList<InventoryItemCheckedOut> events = Helper.getEvents(item, InventoryItemCheckedOut.class);
@@ -172,7 +206,9 @@ public class InventoryItemTests {
         try {
             item.checkOut(-1);
         } catch (NotEnoughStockException e) {
-            Assert.fail("Should not have raised exception");
+            Assert.fail("Should not have raised NotEnoughStockException");
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
         }
     }
 
@@ -185,6 +221,8 @@ public class InventoryItemTests {
             Assert.fail("Should have raised NotEnoughStockException");
         } catch (NotEnoughStockException e) {
             assertEquals("Cannot check 10 My awesome item out because there is only 5 left", e.getMessage());
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
         }
     }
 
@@ -200,7 +238,9 @@ public class InventoryItemTests {
         try {
             handler.handle(cmd);
         } catch (NotEnoughStockException e) {
-            Assert.fail("Should not have raised exception");
+            Assert.fail("Should not have raised NotEnoughStockException");
+        } catch (InventoryItemDeactivatedException e) {
+            Assert.fail("Should not have raised InventoryItemDeactivatedException");
         }
 
         verify(repository).save(any());
@@ -214,7 +254,7 @@ public class InventoryItemTests {
         InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
 
         item.deactivate();
-        
+
         ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
         assertEquals(1, events.size());
         InventoryItemDeactivated evt = events.get(0);
@@ -231,12 +271,40 @@ public class InventoryItemTests {
 
         item.deactivate();
         item.deactivate();
-        
+
         ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
         assertEquals(1, events.size());
         InventoryItemDeactivated evt = events.get(0);
         assertEquals(aggregateId, evt.aggregateId);
         assertEquals(2, evt.version);
+    }
+
+    @Test
+    public void cannotDoAnythingWithDeactivatedInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+
+        item.deactivate();
+
+        try {
+            item.checkIn(5);
+            Assert.fail("Should have raised InventoryItemDeactivatedException");
+        } catch (InventoryItemDeactivatedException e) { }
+
+        try {
+            item.checkOut(5);
+            Assert.fail("Should have raised InventoryItemDeactivatedException");
+        } catch (InventoryItemDeactivatedException e)  { 
+        } catch (NotEnoughStockException e) {
+            Assert.fail("Should not have raised NotEnoughStockException");
+		}
+
+        try {
+            item.rename("New name");
+            Assert.fail("Should have raised InventoryItemDeactivatedException");
+        } catch (InventoryItemDeactivatedException e) { }
     }
 
     @Test
