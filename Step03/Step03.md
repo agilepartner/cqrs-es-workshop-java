@@ -789,7 +789,16 @@ public class InventoryItemDeactivated extends Event {
 
 Here we need to maintain internal state `active` to only raise the event if the inventory item is not already deactivated. Instead of throwing an exception if the item is already deactivated, our implementation choice is simply to ignore that fact. This make that `deactivate` is idempotent.
 
+However, we cannot misguide the user by not saying anything whenever he tries doing something with a deactivated item. We have to say something. So we raise an `InventoryItemDeactivatedException` thanks to method `checkActivated` called at the beginning of other public method.
+
 ```Java
+package net.agilepartner.workshops.cqrs.domain;
+
+import java.util.UUID;
+
+import net.agilepartner.workshops.cqrs.core.AggregateRoot;
+import net.agilepartner.workshops.cqrs.core.Guards;
+
 public class InventoryItem extends AggregateRoot {
     private String name;
     private int stock;
@@ -804,19 +813,22 @@ public class InventoryItem extends AggregateRoot {
         return new InventoryItem(aggregateId, name, quantity);
     }
 
-    public void rename(String name) {
+    public void rename(String name) throws InventoryItemDeactivatedException {
+        checkActivated();
         Guards.checkNotNullOrEmpty(name);
         if (this.name != name)
             raise(InventoryItemRenamed.create(id, name));
     }
 
-    public void checkIn(int quantity) {
+    public void checkIn(int quantity) throws InventoryItemDeactivatedException {
+        checkActivated();
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive");
         raise(InventoryItemCheckedIn.create(id, quantity));
     }
 
-    public void checkOut(int quantity) throws NotEnoughStockException {
+    public void checkOut(int quantity) throws NotEnoughStockException, InventoryItemDeactivatedException {
+        checkActivated();
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive");
         if (this.stock < quantity)
@@ -828,6 +840,11 @@ public class InventoryItem extends AggregateRoot {
     public void deactivate() {
         if (active)
             raise(InventoryItemDeactivated.create(id));
+    }
+
+    private void checkActivated() throws InventoryItemDeactivatedException {
+        if (!active)
+            throw new InventoryItemDeactivatedException(String.format("Inventory Item %s (id %s) is deactivated", name, id.toString()));
     }
 
     @SuppressWarnings("unused")
@@ -858,6 +875,8 @@ public class InventoryItem extends AggregateRoot {
     }
 }
 ```
+
+These changes lead us to also adapt the command handlers to indicate they also my throw `InventoryItemDeactivatedException` before we can implement the `DeactivateInventoryItemHandler`.
 
 #### Deactivate inventory item command handler
 
@@ -918,8 +937,38 @@ public class InventoryItemTests {
         assertEquals(aggregateId, evt.aggregateId);
         assertEquals(2, evt.version);
     }
+
+    @Test
+    public void cannotDoAnythingWithDeactivatedInventoryItem() {
+        UUID aggregateId = UUID.randomUUID();
+        String name = "My awesome item";
+        int quantity = 5;
+        InventoryItem item = InventoryItem.create(aggregateId, name, quantity);
+
+        item.deactivate();
+
+        try {
+            item.checkIn(5);
+            Assert.fail("Should have raised InventoryItemDeactivatedException");
+        } catch (InventoryItemDeactivatedException e) { }
+
+        try {
+            item.checkOut(5);
+            Assert.fail("Should have raised InventoryItemDeactivatedException");
+        } catch (InventoryItemDeactivatedException e)  {
+        } catch (NotEnoughStockException e) {
+            Assert.fail("Should not have raised NotEnoughStockException");
+        }
+
+        try {
+            item.rename("New name");
+            Assert.fail("Should have raised InventoryItemDeactivatedException");
+        } catch (InventoryItemDeactivatedException e) { }
+    }
 }
 ```
+
+Of course, we also had to adapt all the already existing test to handle `InventoryItemDeactivatedException` as well.
 
 ```Java
 @RunWith(SpringRunner.class)
