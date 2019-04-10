@@ -18,7 +18,7 @@ public class InMemoryEventStore implements EventStore {
     }
 
     @Override
-    public void save(UUID aggregateId, List<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException {
+    public void save(UUID aggregateId, Iterable<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException {
         List<Event> existingEvents;
         int currentVersion = 0;
         if (events.containsKey(aggregateId)) {
@@ -39,7 +39,7 @@ public class InMemoryEventStore implements EventStore {
 
     @Override
     public List<? extends Event> load(UUID aggregateId) {
-        List<? extends Event> aggreagateEvents = events.getOrDefault(aggregateId, new ArrayList<>());
-        return new ArrayList<>(aggreagateEvents);
+        List<? extends Event> aggregateEvents = events.getOrDefault(aggregateId, new ArrayList<>());
+        return new ArrayList<>(aggregateEvents);
     }
 }

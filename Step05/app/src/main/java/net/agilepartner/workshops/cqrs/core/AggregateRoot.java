@@ -19,6 +19,10 @@ public abstract class AggregateRoot {
 
     public UUID getId() { return id; }
 
+    public int getVersion() { return version; }
+
+    public int getOriginalVersion() { return version - changes.size(); }
+
     public void markChangesAsCommitted() {
         changes.clear();
     }
@@ -68,5 +72,4 @@ public abstract class AggregateRoot {
     private static <T> Class<T> nonAnonymous(Class<T> cl) {
         return cl.isAnonymousClass() ? (Class<T>) cl.getSuperclass() : cl;
     }
-
 }

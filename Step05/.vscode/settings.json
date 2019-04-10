@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "Akka",
         "Brandolini's",
         "CQRS",
         "Denormalize",
@@ -9,7 +10,10 @@
         "Stormers",
         "Superclass",
         "awesomer",
+        "clazz",
+        "eventsourcing",
         "idempotence",
-        "instanceof"
+        "instanceof",
+        "parametrized"
     ]
 }

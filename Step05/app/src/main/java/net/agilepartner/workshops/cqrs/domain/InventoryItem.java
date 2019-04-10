@@ -9,6 +9,10 @@ public class InventoryItem extends AggregateRoot {
     private String name;
     private int stock;
     private Boolean active;
+    
+    public InventoryItem(UUID aggregateId) {
+        super(aggregateId);
+    }
 
     private InventoryItem(UUID aggregateId, String name, int quantity) {
         super(aggregateId);

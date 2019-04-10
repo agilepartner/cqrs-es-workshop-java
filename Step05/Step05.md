@@ -8,8 +8,8 @@ An *event store* is something pretty simple. It allows you to either load all ev
 
 ```Java
 public interface EventStore {
-    void save(UUID aggregateId, List<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException;
     List<? extends Event> load(UUID aggregateId);
+    void save(UUID aggregateId, Iterable<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException;
 }
 ```
 
@@ -50,7 +50,7 @@ public class InMemoryEventStore implements EventStore {
     }
 
     @Override
-    public void save(UUID aggregateId, List<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException {
+    public void save(UUID aggregateId, Iterable<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException {
         List<Event> existingEvents;
         int currentVersion = 0;
         if (events.containsKey(aggregateId)) {
@@ -71,8 +71,8 @@ public class InMemoryEventStore implements EventStore {
 
     @Override
     public List<? extends Event> load(UUID aggregateId) {
-        List<? extends Event> aggreagateEvents = events.getOrDefault(aggregateId, new ArrayList<>());
-        return new ArrayList<>(aggreagateEvents);
+        List<? extends Event> aggregateEvents = events.getOrDefault(aggregateId, new ArrayList<>());
+        return new ArrayList<>(aggregateEvents);
     }
 }
 ```
@@ -188,48 +188,224 @@ public class InMemoryEventStoreTests {
 }
 ```
 
-Later on, we will see that we can use many different ways to save events as an event stream
+## Repository using event store to persist and retrieve events
+
+Now that we have introduced the notion of *event store*, we can write a new kind of `Repository`, that will use the `EventStore` to persist the events of an `AggregateRoot`.
+
+```Java
+public class EventStoreAwareRepository<T extends AggregateRoot> implements Repository<T> {
+    private final EventStore eventStore;
+    private final Function<UUID, T> factory;
+
+    public EventStoreAwareRepository(EventStore eventStore, Function<UUID, T> factory) {
+        this.eventStore = eventStore;
+        this.factory = factory;
+    }
+
+    @Override
+    public T getById(UUID aggregateId) {
+        T aggregate =  factory.apply(aggregateId);
+        Collection<? extends Event> events  = eventStore.load(aggregate.getId());
+        if (events == null || events.size() == 0) {
+            throw new AggregateNotFoundException(aggregateId);
+        }
+
+        aggregate.loadFromHistory(events);
+        return aggregate;
+    }
+
+    @Override
+    public void save(AggregateRoot aggregate) throws OptimisticLockingException {
+        Guards.checkNotNull(aggregate.getId());
+        eventStore.save(aggregate.getId(), aggregate.getUncommittedChanges(), aggregate.getOriginalVersion());
+        aggregate.markChangesAsCommitted();
+    }
+}
+```
+
+We inject two things into the `Repository`
+
+* First the `EventStore` that is used to persist the events and get them back.
+* Second, a factory function that is used to create a new instance of the *aggregate*.
+
+We could have used some weird voodoo *reflection* magic to create a new instance of the *aggregate*, but instead, we prefer to be explicit and simple, and just pass the factory function as a dependency.
+
+We also need a new exception `AggregateNotFoundException` in case no events for the given aggregate are found in the *event store*.
+
+```Java
+public class AggregateNotFoundException extends RuntimeException {
+    private static final long serialVersionUID = -3750447531677604222L;
+
+    public AggregateNotFoundException(UUID id) {
+        super("Aggregate not found. Id=" + id.toString());
+    }
+}
+```
+
+And of course, now we can implement the tests
+
+```Java
+@RunWith(SpringRunner.class)
+public class EventStoreAwareRepositoryTests {
+    @Mock
+    EventStore eventStore;
+
+    @Test
+    public void saveNewAggregate() {
+        Repository<MyAggregate> repository = new EventStoreAwareRepository<>(
+            eventStore,
+            id -> new MyAggregate(id));
+
+        UUID aggregateId = UUID.randomUUID();
+        MyAggregate aggregate = new MyAggregate(aggregateId);
+        aggregate.changeName("New name");
+
+        Iterable<? extends Event> events = aggregate.getUncommittedChanges();
+
+        assertEquals(1, aggregate.getVersion());
+        assertEquals(0, aggregate.getOriginalVersion());
+
+        repository.save(aggregate);
+
+        assertFalse(aggregate.getUncommittedChanges().iterator().hasNext());
+        assertEquals(1, aggregate.getVersion());
+        assertEquals(1, aggregate.getOriginalVersion());
+        verify(eventStore).save(aggregateId, events, 0);
+    }
+
+    @Test
+    public void saveExistingAggregate() {
+        Repository<MyAggregate> repository = new EventStoreAwareRepository<>(
+            eventStore,
+            id -> new MyAggregate(id));
+
+        UUID aggregateId = UUID.randomUUID();
+        MyAggregate aggregate = new MyAggregate(aggregateId);
+        aggregate.changeName("New name 1");
+        aggregate.changeName("New name 2");
+
+        repository.save(aggregate);
+
+        aggregate.changeName("New name 3");
+        aggregate.changeName("New name 4");
+
+        assertEquals(4, aggregate.getVersion());
+        assertEquals(2, aggregate.getOriginalVersion());
+
+        Iterable<? extends Event> events = aggregate.getUncommittedChanges();
+
+        repository.save(aggregate);
+
+        assertFalse(aggregate.getUncommittedChanges().iterator().hasNext());
+        assertEquals(4, aggregate.getVersion());
+        assertEquals(4, aggregate.getOriginalVersion());
+        verify(eventStore).save(aggregateId, events, 2);
+    }
+}
+```
+
+## Putting it all together
+
+```Java
+public class End2EndTests {
+
+    @Test
+    public void wireUpWithInMemory() {
+        Repository<InventoryItem> repository = new InMemoryRepository<InventoryItem>();
+
+        runEnd2EndTests(repository);
+    }
+
+    @Test
+    public void wireUpWithEventStore() {
+        EventPublisher publisher = new NoopPublisher();
+        EventStore eventStore = new InMemoryEventStore(publisher);
+        Repository<InventoryItem> repository = new EventStoreAwareRepository<InventoryItem>(eventStore,
+                aggregateId -> new InventoryItem(aggregateId));
+
+        runEnd2EndTests(repository);
+    }
+
+    private void runEnd2EndTests(Repository<InventoryItem> repository) {
+        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
+        resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
+        resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);
+        resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
+        resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
+
+        CommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+
+        CreateInventoryItem createApple = CreateInventoryItem.create("Apple", 10);
+        CreateInventoryItem createBanana = CreateInventoryItem.create("Banana", 7);
+        CreateInventoryItem createOrange = CreateInventoryItem.create("Orange", 5);
+
+        try {
+            // Create fruits
+            dispatcher.dispatch(createApple);
+            dispatcher.dispatch(createBanana);
+            dispatcher.dispatch(createOrange);
+
+            // Check out
+            dispatcher.dispatch(CheckInventoryItemOut.create(createApple.aggregateId, 5)); // 5 apples left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createBanana.aggregateId, 5)); // 2 bananas left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // 0 oranges left
+
+            // Checking out too many oranges
+            try {
+                dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // Cannot check more
+                                                                                                // oranges out
+                Assert.fail("Should have raised NotEnoughStockException");
+            } catch (NotEnoughStockException ex) {
+            }
+
+            // Renaming orange to pear
+            dispatcher.dispatch(RenameInventoryItem.create(createOrange.aggregateId, "Pear")); // 0 pears left
+
+            // Resupplying bananas (everybody loves bananas)
+            dispatcher.dispatch(CheckInventoryItemIn.create(createBanana.aggregateId, 3)); // 5 bananas left
+
+            // Nobody wants apples anymore
+            dispatcher.dispatch(DeactivateInventoryItem.create(createApple.aggregateId)); // apple item deactivated
+
+            // Can't check in an item that is deactivated
+            try {
+                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.aggregateId, 5));
+                Assert.fail("Should not be able to check apples in because the item is deactivated");
+            } catch (InventoryItemDeactivatedException ex) {
+            }
+
+        } catch (DomainException e) {
+            Assert.fail("Should not have raised any exception");
+        }
+    }
+}
+```
+
+Notice how we refactored the code to avoid duplication. The only thing that changes between the two tests is the implementation of the `Repository`.
+
+We also implemented a `NoopPublisher` that does absolutely nothing.
+
+```Java
+public class NoopPublisher implements EventPublisher {
+    @Override
+    public <T extends Event> void publish(UUID aggregateId, T event) {
+    }
+}
+```
+
+We have now a simple in-memory implementation of an *event store*. Later on, we will see that we have many different ways to implement a more robust version of an *event store*, that will actually persist events.
 
 * Using any relational database
 * Using any noSQL database
 * using [Greg Young's EventStore](https://eventstore.org/)
 * Using Kafka streams
 
-## Event handler
-
-<!-- Step 06 ???? -->
-
-```Java
-public interface MessageHandler<T extends Message>  {
-    public void handle(T action);
-}
-```
-
-```Java
-public interface EventHandler<T extends Event> extends MessageHandler<T>  {
-    public void handle(T event);
-}
-```
-
-```Java
-
-```
-
-```Java
-
-```
-
-```Java
-
-```
-
-```Java
-
-```
+We also publish all events once the are saved.
 
 ## What's next
 
-In the next step, we will ...
+In the next step, we will see how we can react to events being published to generate materialized views, a.k.a. read models, a.k.a. projections.
 
-* Go to [Step 05](../Step06/Step06.md)
+* Go to [Step 06](../Step06/Step06.md)
 * Go back to [Home](../README.md)
