@@ -171,6 +171,7 @@ public class CreateInventoryItemHandler implements CommandHandler<CreateInventor
 The test is also straight forward. We just created a new `Helper` class that defines a generic method to get all events of a specific type. We also refactored `AggregateRootTests` to use this *helper*.
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
     @Test
     public void createInventoryItem() {
@@ -193,6 +194,7 @@ public class InventoryItemTests {
 We can also implement a simple test for the *command handler*. Because the *command handler* has a dependency on the `Repository<InventoryItem>`, we will be needing a mock.
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     @Mock
@@ -310,6 +312,7 @@ public class RenameInventoryItemHandler implements CommandHandler<RenameInventor
 #### Rename inventory item tests
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -361,6 +364,7 @@ public class InventoryItemTests {
 We can also write a test for the *command handler*.
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -457,6 +461,7 @@ public class CheckInventoryItemInHandler implements CommandHandler<CheckInventor
 #### Check inventory item in tests
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -489,6 +494,7 @@ public class InventoryItemTests {
 ```
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -667,6 +673,7 @@ public interface CommandHandler<T extends Command> {
 #### Check inventory item out tests
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -719,6 +726,7 @@ public class InventoryItemTests {
 ```
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -892,6 +900,7 @@ public class DeactivateInventoryItemHandler implements CommandHandler<Deactivate
 #### Deactivate inventory item tests
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]
@@ -962,6 +971,7 @@ public class InventoryItemTests {
 Of course, we also had to adapt all the already existing test to handle `InventoryItemDeactivatedException` as well.
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     [...]

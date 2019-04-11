@@ -80,6 +80,7 @@ public class InMemoryEventStore implements EventStore {
 And we can implement some tests.
 
 ```Java
+@RunWith(SpringRunner.class)
 public class InMemoryEventStoreTests {
 
     @Mock
@@ -244,6 +245,7 @@ public class AggregateNotFoundException extends RuntimeException {
 And of course, now we can implement the tests
 
 ```Java
+@RunWith(SpringRunner.class)
 public class EventStoreAwareRepositoryTests {
     @Mock
     EventStore eventStore;

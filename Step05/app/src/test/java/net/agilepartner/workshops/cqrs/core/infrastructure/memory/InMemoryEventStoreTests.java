@@ -9,7 +9,9 @@ import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import net.agilepartner.workshops.cqrs.core.Event;
 import net.agilepartner.workshops.cqrs.core.EventPublisher;
@@ -17,6 +19,7 @@ import net.agilepartner.workshops.cqrs.core.NameChanged;
 import net.agilepartner.workshops.cqrs.core.infrastructure.EventStore;
 import net.agilepartner.workshops.cqrs.core.infrastructure.OptimisticLockingException;
 
+@RunWith(SpringRunner.class)
 public class InMemoryEventStoreTests {
 
     @Mock
