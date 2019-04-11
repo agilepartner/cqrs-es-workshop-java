@@ -1,0 +1,9 @@
+type InventoryItem {
+  id: ID!
+  name: String!
+  quantity: Int!
+}
+
+type Inventory {
+    items: [InventoryItem!]
+}

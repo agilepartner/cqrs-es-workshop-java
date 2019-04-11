@@ -27,7 +27,7 @@ The code for this workshop is inspired by the following repositories
 * [Step 04 : Wire everything up](/Step04/Step04.md)
 * [Step 05 : Persisting and publishing events](/Step05/Step05.md)
 * [Step 06 : Materialized view (a.k.a. read models a.k.a. projections)](/Step06/Step06.md)
-* Step 07 : Define an API in GraphQL
+* [Step 07 : Define an API in GraphQL](/Step07/Step07.md)
 * Step 08 : Create a simple front-end in Vue.js
 * Step 09 : Become reactive with Websocket
 * Step 10 : Concurrency with actors
