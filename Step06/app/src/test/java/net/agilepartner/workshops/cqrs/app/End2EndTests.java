@@ -1,5 +1,10 @@
 package net.agilepartner.workshops.cqrs.app;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.*;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -7,27 +12,75 @@ import net.agilepartner.workshops.cqrs.core.*;
 import net.agilepartner.workshops.cqrs.core.infrastructure.*;
 import net.agilepartner.workshops.cqrs.core.infrastructure.memory.*;
 import net.agilepartner.workshops.cqrs.domain.*;
+import net.agilepartner.workshops.cqrs.views.*;
 
 public class End2EndTests {
 
-    @Test
-	public void wireUpWithInMemory() {
-		Repository<InventoryItem> repository = new InMemoryRepository<InventoryItem>();
+    private UUID appleId;
+    private UUID bananaId;
+    private UUID orangeId;
 
-		runEnd2EndTests(repository);
+    class Fruits {
+        public static final String Apple = "Apple";
+        public static final String Banana = "Banana";
+        public static final String Orange = "Orange";
+        public static final String Pear = "Pear";
     }
 
     @Test
-    public void wireUpWithEventStore() {
-        EventPublisher publisher = new NoopPublisher();
+	public void wireUpWithInMemoryRepository() {
+        Repository<InventoryItem> repository = new InMemoryRepository<InventoryItem>();
+        CommandDispatcher dispatcher = buildCommandDispatcher(repository);
+		runEnd2EndTests(dispatcher);
+    }
+
+    @Test
+    public void wireUpWithEventStoreAwareRepository() {
+        EventPublisher eventPublisher = new NoopPublisher();
+        Repository<InventoryItem> repository = buildRepository(eventPublisher);
+        CommandDispatcher dispatcher = buildCommandDispatcher(repository);
+
+        runEnd2EndTests(dispatcher);
+    }
+
+    @Test
+    public void wireUpWithMaterializedView() {
+        InventoryView view = new InventoryView();
+        EventPublisher eventPublisher = buildEventPublisher(view);
+        Repository<InventoryItem> repository = buildRepository(eventPublisher);
+        CommandDispatcher dispatcher = buildCommandDispatcher(repository);
+
+        runEnd2EndTests(dispatcher);
+
+        InventoryItemReadModel apples = view.get(appleId);
+        assertNull(apples);
+        InventoryItemReadModel bananas = view.get(bananaId);
+        assertEquals(Fruits.Banana, bananas.name);
+        assertEquals(5, bananas.quantity);
+        InventoryItemReadModel oranges = view.get(orangeId);
+        assertEquals(Fruits.Pear, oranges.name);
+        assertEquals(0, oranges.quantity);
+    }
+
+    private EventPublisher buildEventPublisher(InventoryView view) {
+        EventResolver eventResolver = new InMemoryEventResolver();
+        eventResolver.register(view.createdHandler, InventoryItemCreated.class);
+        eventResolver.register(view.renamedHandler, InventoryItemRenamed.class);
+        eventResolver.register(view.checkedInHandler, InventoryItemCheckedIn.class);
+        eventResolver.register(view.checkedOutHandler, InventoryItemCheckedOut.class);
+        eventResolver.register(view.deactivatedHandler, InventoryItemDeactivated.class);
+
+        return new InMemoryEventPublisher(eventResolver);
+    }
+
+    private Repository<InventoryItem> buildRepository(EventPublisher publisher) {
         EventStore eventStore = new InMemoryEventStore(publisher);
         Repository<InventoryItem> repository = new EventStoreAwareRepository<InventoryItem>(eventStore,
                 aggregateId -> new InventoryItem(aggregateId));
-
-        runEnd2EndTests(repository);
+        return repository;
     }
 
-    private void runEnd2EndTests(Repository<InventoryItem> repository) {
+    private CommandDispatcher buildCommandDispatcher(Repository<InventoryItem> repository) {
         CommandResolver resolver = InMemoryCommandResolver.getInstance();
         resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
         resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
@@ -35,11 +88,16 @@ public class End2EndTests {
         resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
         resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
 
-        CommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+        return new InMemoryCommandDispatcher(resolver);
+    }
 
-        CreateInventoryItem createApple = CreateInventoryItem.create("Apple", 10);
-        CreateInventoryItem createBanana = CreateInventoryItem.create("Banana", 7);
-        CreateInventoryItem createOrange = CreateInventoryItem.create("Orange", 5);
+    private void runEnd2EndTests(CommandDispatcher dispatcher) {
+        CreateInventoryItem createApple = CreateInventoryItem.create(Fruits.Apple, 10);
+        appleId = createApple.aggregateId;
+        CreateInventoryItem createBanana = CreateInventoryItem.create(Fruits.Banana, 7);
+        bananaId = createBanana.aggregateId;
+        CreateInventoryItem createOrange = CreateInventoryItem.create(Fruits.Orange, 5);
+        orangeId = createOrange.aggregateId;
 
         try {
             // Create fruits

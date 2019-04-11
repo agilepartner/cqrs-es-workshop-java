@@ -10,6 +10,7 @@ This code is a workshop to build a Domain-Driven Design / CQRS / Event Sourcing 
 * Akka
 * Apache Kafka
 * Apache Kafka Streams
+* GraphQL
 
 ## Acknowledgement
 
@@ -26,10 +27,10 @@ The code for this workshop is inspired by the following repositories
 * [Step 04 : Wire everything up](/Step04/Step04.md)
 * [Step 05 : Persisting and publishing events](/Step05/Step05.md)
 * [Step 06 : Materialized view (a.k.a. read models a.k.a. projections)](/Step06/Step06.md)
-* Step 07 : Concurrency with actors
-* Step 08 : Introducing Kafka
-* Step 09 : React to events (process manager)
-* Step 10 : Define an API in GraphQL
-* Step 11 : Front-end
-* Step 12 : Websocket
-* Step 13 : Scale out
+* Step 07 : Define an API in GraphQL
+* Step 08 : Create a simple front-end in Vue.js
+* Step 09 : Become reactive with Websocket
+* Step 10 : Concurrency with actors
+* Step 11 : Introducing Kafka as messaging middleware
+* Step 12 : React to events with a process manager
+* Step 13 : Scaling out
