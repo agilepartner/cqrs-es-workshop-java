@@ -11,6 +11,7 @@
         "Superclass",
         "awesomer",
         "clazz",
+        "denormalization",
         "eventsourcing",
         "idempotence",
         "instanceof",
