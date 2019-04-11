@@ -7,15 +7,12 @@ import static org.mockito.Mockito.verify;
 import java.util.UUID;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import net.agilepartner.workshops.cqrs.core.Event;
 import net.agilepartner.workshops.cqrs.core.MyAggregate;
 import net.agilepartner.workshops.cqrs.core.Repository;
 
-@RunWith(SpringRunner.class)
 public class EventStoreAwareRepositoryTests {
     @Mock
     EventStore eventStore;

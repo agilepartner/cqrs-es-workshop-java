@@ -10,14 +10,11 @@ import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import net.agilepartner.workshops.cqrs.Helper;
 import net.agilepartner.workshops.cqrs.core.Repository;
 
-@RunWith(SpringRunner.class)
 public class InventoryItemTests {
 
     @Mock

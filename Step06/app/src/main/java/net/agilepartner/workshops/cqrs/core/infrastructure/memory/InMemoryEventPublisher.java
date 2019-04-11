@@ -14,8 +14,8 @@ public class InMemoryEventPublisher implements EventPublisher {
 
     @Override
     public <T extends Event> void publish(UUID aggregateId, T event) {
-        Iterable<EventHandler<T>> eventHandlders = resolver.findHandlersFor(event.getClass());
-        for (EventHandler<T> eventHandler : eventHandlders) {
+        Iterable<EventHandler<T>> eventHandlers = resolver.findHandlersFor(event.getClass());
+        for (EventHandler<T> eventHandler : eventHandlers) {
             eventHandler.handle(event);
         }
     }

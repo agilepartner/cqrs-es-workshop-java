@@ -73,7 +73,6 @@ public class InMemoryCommandDispatcher implements CommandDispatcher {
 We can easily test this implementation.
 
 ```Java
-@RunWith(SpringRunner.class)
 public class InMemoryCommandDispatcherTests {
     private Boolean handlerCalled;
 
@@ -153,7 +152,6 @@ Note that we had to add `getId` on `AggregateRoot`. This does break encapsulatio
 Here are the tests for the repository
 
 ```Java
-@RunWith(SpringRunner.class)
 public class InMemoryRepositoryTests {
 
     @Test

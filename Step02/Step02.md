@@ -165,7 +165,6 @@ There are several things to notice here
 We can now test our aggregate to see if everything works fine. We can test the creation of the *aggregate* fist and then test the `changeName` method.
 
 ```Java
-@RunWith(SpringRunner.class)
 public class AggregateRootTests {
 
     @Test
@@ -231,7 +230,6 @@ At some point, we will have to load/restore our *aggregate* from some kind of pe
 We can write this test by simulating *event*s as if the were loaded from a persistence layer.
 
 ```Java
-@RunWith(SpringRunner.class)
 public class AggregateRootTests {
 
     [...]

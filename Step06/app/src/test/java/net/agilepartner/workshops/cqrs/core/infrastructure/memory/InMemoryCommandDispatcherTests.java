@@ -5,15 +5,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import net.agilepartner.workshops.cqrs.core.Command;
 import net.agilepartner.workshops.cqrs.core.CommandHandler;
 import net.agilepartner.workshops.cqrs.core.DomainException;
 import net.agilepartner.workshops.cqrs.core.infrastructure.CommandResolver;
 
-@RunWith(SpringRunner.class)
 public class InMemoryCommandDispatcherTests {
     private Boolean handlerCalled;
 
