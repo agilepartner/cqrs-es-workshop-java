@@ -14,7 +14,7 @@ The *command dispatcher* will need a *command resolver*. The `CommandResolver` w
 
 ```Java
 public interface CommandResolver {
-    public <T extends Command> CommandHandler<T> findHandlersFor(Class<?> cmdClass);
+    public <T extends Command> CommandHandler<T> findHandlerFor(Class<?> cmdClass);
     public <T extends Command> void register(CommandHandler<T> handler, Class<?> cmdClass);
 }
 ```
@@ -35,7 +35,7 @@ public class InMemoryCommandResolver implements CommandResolver {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends Command> CommandHandler<T> findHandlersFor(Class<?> cmdClass) {
+    public <T extends Command> CommandHandler<T> findHandlerFor(Class<?> cmdClass) {
         CommandHandler<?> handler = map.get((Object) cmdClass.getSimpleName());
         if (handler == null)
             throw new UnsupportedOperationException(String.format("No handler defined for command %s", cmdClass.getSimpleName()));
@@ -62,7 +62,7 @@ public class InMemoryCommandDispatcher implements CommandDispatcher {
 
     @Override
     public <T extends Command> void dispatch(T command) throws DomainException {
-        CommandHandler<T> handler = resolver.findHandlersFor(command.getClass());
+        CommandHandler<T> handler = resolver.findHandlerFor(command.getClass());
         if (handler != null) {
             handler.handle(command);
         }
@@ -93,11 +93,11 @@ public class InMemoryCommandDispatcherTests {
     }
 
     @Test
-    public void findHandlersForMyCommand() {
+    public void findHandlerForMyCommand() {
         CommandResolver resolver = InMemoryCommandResolver.getInstance();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
-        CommandHandler<MyCommand> handler = resolver.findHandlersFor(MyCommand.class);
+        CommandHandler<MyCommand> handler = resolver.findHandlerFor(MyCommand.class);
         assertNotNull(handler);
         try {
             handler.handle(new MyCommand());

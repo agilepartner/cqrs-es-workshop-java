@@ -15,7 +15,7 @@ public class InMemoryCommandDispatcher implements CommandDispatcher {
 
     @Override
     public <T extends Command> void dispatch(T command) throws DomainException {
-        CommandHandler<T> handler = resolver.findHandlersFor(command.getClass());
+        CommandHandler<T> handler = resolver.findHandlerFor(command.getClass());
         if (handler != null) {
             handler.handle(command);
         }

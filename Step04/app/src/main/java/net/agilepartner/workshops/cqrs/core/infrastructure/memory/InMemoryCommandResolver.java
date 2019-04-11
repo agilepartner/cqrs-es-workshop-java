@@ -17,7 +17,7 @@ public class InMemoryCommandResolver implements CommandResolver {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends Command> CommandHandler<T> findHandlersFor(Class<?> cmdClass) {
+    public <T extends Command> CommandHandler<T> findHandlerFor(Class<?> cmdClass) {
         CommandHandler<?> handler = map.get((Object) cmdClass.getSimpleName());
         if (handler == null)
             throw new UnsupportedOperationException(String.format("No handler defined for command %s", cmdClass.getSimpleName()));

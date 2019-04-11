@@ -34,11 +34,11 @@ public class InMemoryCommandDispatcherTests {
     }
 
     @Test
-    public void findHandlersForMyCommand() {
+    public void findHandlerForMyCommand() {
         CommandResolver resolver = InMemoryCommandResolver.getInstance();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
-        CommandHandler<MyCommand> handler = resolver.findHandlersFor(MyCommand.class);
+        CommandHandler<MyCommand> handler = resolver.findHandlerFor(MyCommand.class);
         assertNotNull(handler);
         try {
             handler.handle(new MyCommand());
