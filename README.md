@@ -27,6 +27,14 @@ If you don't want to install a code editor locally, you can also use [GitPod](ht
 
 For more details, just follow the [Getting Startd](https://www.gitpod.io/docs/10_Getting_Started/).
 
+## Get the code
+
+To get the code, just clone this repository
+
+``` bash
+git clone https://github.com/agilepartner/cqrs-es-workshop-java.git
+```
+
 ## Acknowledgement
 
 The code for this workshop is inspired by the following repositories
