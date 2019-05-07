@@ -23,7 +23,7 @@ For more details, just follow the tutorial [Writing Java with Visual Studio Code
 
 ## GitPod
 
-If you don't want to install a code editor locally, you can also use [GitPod](https://www.gitpod.io/). Gitpod launches ready-to-code dev environments from any GitHub page. Simply go to the [GitPod App](https://gitpod.io/workspaces/) and start coding. You can also install the [GitPod Browser Extension](https://www.gitpod.io/docs/20_Browser_Extension/).
+If you don't want to install a code editor locally, you can also use [Gitpod](https://www.gitpod.io/). Gitpod launches ready-to-code dev environments from any GitHub page. Simply go to the [Gitpod App](https://gitpod.io/workspaces/) and start coding. You can also install the [Gitpod Browser Extension](https://www.gitpod.io/docs/20_Browser_Extension/).
 
 For more details, just follow the [Getting Startd](https://www.gitpod.io/docs/10_Getting_Started/).
 
