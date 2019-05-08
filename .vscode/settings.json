@@ -7,6 +7,17 @@
         "Serializable",
         "Superclass",
         "ctxt",
-        "eventsourcing"
-    ]
+        "eventsourcing",
+        "Brandolini",
+        "CQRS",
+        "Liskov",
+        "Stormers",
+        "awesomer",
+        "idempotence",
+        "instanceof",
+        "Denormalize",
+        "Denormalizing",
+        "parametrized"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
