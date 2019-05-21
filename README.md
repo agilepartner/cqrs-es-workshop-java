@@ -21,6 +21,10 @@ We recommend you install [Java Extension Pack](https://marketplace.visualstudio.
 
 For more details, just follow the tutorial [Writing Java with Visual Studio Code](https://code.visualstudio.com/docs/java/java-tutorial).
 
+You can run Visual Studio Code in [portable mode](https://code.visualstudio.com/docs/editor/portable). You can download the packaged version from the [alternate downloads page](https://code.visualstudio.com/#alt-downloads)
+
+Alternatively, you can run [coder](https://coder.com/) on Docker.
+
 ## GitPod
 
 If you don't want to install a code editor locally, you can also use [Gitpod](https://www.gitpod.io/). Gitpod launches ready-to-code dev environments from any GitHub page. Simply go to the [Gitpod App](https://gitpod.io/workspaces/) and start coding. You can also install the [Gitpod Browser Extension](https://www.gitpod.io/docs/20_Browser_Extension/).
