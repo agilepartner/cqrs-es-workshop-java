@@ -11,15 +11,15 @@ We are going to use [Spring Initializr](https://start.spring.io/) to bootstrap t
 5. Choose the latest stable version i.e. *2.1.3*
 6. Add dependencies
     * DevTools
-    * Lombok
-    * Kafka
-    * Kafka Streams
 
 ## Edit the *.gitignore*
 
 Edit the *.gitignore* file and add the following to make sure that Java artifacts are ignored.
 
 ```yaml
+### VS Code ###
+.vscode/
+
 # Bin
 /bin/
 
@@ -28,24 +28,6 @@ Edit the *.gitignore* file and add the following to make sure that Java artifact
 
 # Log file
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
 ```
 
 ## Run the tests
