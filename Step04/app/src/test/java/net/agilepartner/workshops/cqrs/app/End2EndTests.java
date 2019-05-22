@@ -21,7 +21,7 @@ public class End2EndTests {
 		resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
 		resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
 
-        CommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+        CommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);
         
         CreateInventoryItem createApple = CreateInventoryItem.create("Apple", 10);
         CreateInventoryItem createBanana = CreateInventoryItem.create("Banana", 7);
@@ -44,7 +44,7 @@ public class End2EndTests {
                 Assert.fail("Should have raised NotEnoughStockException");
             } catch (NotEnoughStockException ex) { }
 
-            //Renaming organge to pear
+            //Renaming orange to pear
             dispatcher.dispatch(RenameInventoryItem.create(createOrange.aggregateId, "Pear")); // 0 pears left
 
             //Resupplying bananas (everybody loves bananas)

@@ -19,7 +19,7 @@ public interface CommandResolver {
 }
 ```
 
-Here is the concrete implementation of an in-memory command resolver. Pay attention here, that there should only be one handler for a given command. That is a best practice. 
+Here is the concrete implementation of an in-memory command resolver. Pay attention here, that there should only be one handler for a given command. That is a best practice.
 
 The `InMemoryCommandResolver` is implemented as a singleton. We use a `ConcurrentHashMap` to make sure we are thread-safe.
 
@@ -53,10 +53,10 @@ public class InMemoryCommandResolver implements CommandResolver {
 The *dispatcher* uses the *resolver* to find the right *handler* and calls it.
 
 ```Java
-public class InMemoryCommandDispatcher implements CommandDispatcher {
+public class SimpleCommandDispatcher implements CommandDispatcher {
     private final CommandResolver resolver;
 
-    public InMemoryCommandDispatcher(CommandResolver resolver) {
+    public SimpleCommandDispatcher(CommandResolver resolver) {
         this.resolver = resolver;
     }
 
@@ -73,7 +73,7 @@ public class InMemoryCommandDispatcher implements CommandDispatcher {
 We can easily test this implementation.
 
 ```Java
-public class InMemoryCommandDispatcherTests {
+public class SimpleCommandDispatcherTests {
     private Boolean handlerCalled;
 
     public class MyCommand extends Command {
@@ -111,7 +111,7 @@ public class InMemoryCommandDispatcherTests {
         CommandResolver resolver = InMemoryCommandResolver.getInstance();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
-        InMemoryCommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+        SimpleCommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);
 
         try {
             dispatcher.dispatch(new MyCommand());
@@ -193,7 +193,7 @@ public class End2EndTests {
         resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
         resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
 
-        CommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+        CommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);
 
         CreateInventoryItem createApple = CreateInventoryItem.create("Apple", 10);
         CreateInventoryItem createBanana = CreateInventoryItem.create("Banana", 7);
@@ -216,7 +216,7 @@ public class End2EndTests {
                 Assert.fail("Should have raised NotEnoughStockException");
             } catch (NotEnoughStockException ex) { }
 
-            //Renaming organge to pear
+            //Renaming orange to pear
             dispatcher.dispatch(RenameInventoryItem.create(createOrange.aggregateId, "Pear")); // 0 pears left
 
             //Resupplying bananas (everybody loves bananas)
@@ -227,7 +227,7 @@ public class End2EndTests {
 
             //Can't check in an item that is deactivated
             try {
-                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.aggregateId, 5)); 
+                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.aggregateId, 5));
                 Assert.fail("Should not be able to check apples in because the item is deactivated");
             } catch (InventoryItemDeactivatedException ex) { }
         } catch (DomainException e) {
@@ -239,7 +239,7 @@ public class End2EndTests {
 
 ## Conclusion
 
-In this step, we have wired up our domain to our command handlers thanks to some infrastructure, mainly running in memory. In memory is ok for testing, but it's definitely not sufficient for production grade software. We will need something more robust. Concurrent hash map are great when you run in a single process, but we will need to handle concurrency better than that if we want our application to scale out. 
+In this step, we have wired up our domain to our command handlers thanks to some infrastructure, mainly running in memory. In memory is ok for testing, but it's definitely not sufficient for production grade software. We will need something more robust. Concurrent hash map are great when you run in a single process, but we will need to handle concurrency better than that if we want our application to scale out.
 
 With our current implementation, all the calls are synchronous. This means that the user has to wait until the whole process is over before we get the hand back to him/her. This is fine for our naive example where processing time is very short, but imagine what is would be with longer processes. We probably want to level the load and start implementing asynchronous processing for long running process.
 

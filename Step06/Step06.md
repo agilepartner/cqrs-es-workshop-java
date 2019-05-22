@@ -363,7 +363,7 @@ public class End2EndTests {
         resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
         resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
 
-        return new InMemoryCommandDispatcher(resolver);
+        return new SimpleCommandDispatcher(resolver);
     }
 
     private void runEnd2EndTests(CommandDispatcher dispatcher) {

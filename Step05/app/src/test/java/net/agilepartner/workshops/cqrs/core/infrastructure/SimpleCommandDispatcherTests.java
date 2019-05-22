@@ -1,4 +1,4 @@
-package net.agilepartner.workshops.cqrs.core.infrastructure.memory;
+package net.agilepartner.workshops.cqrs.core.infrastructure;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -10,8 +10,9 @@ import net.agilepartner.workshops.cqrs.core.Command;
 import net.agilepartner.workshops.cqrs.core.CommandHandler;
 import net.agilepartner.workshops.cqrs.core.DomainException;
 import net.agilepartner.workshops.cqrs.core.infrastructure.CommandResolver;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryCommandResolver;
 
-public class InMemoryCommandDispatcherTests {
+public class SimpleCommandDispatcherTests {
     private Boolean handlerCalled;
 
     public class MyCommand extends Command {
@@ -50,7 +51,7 @@ public class InMemoryCommandDispatcherTests {
         CommandResolver resolver = InMemoryCommandResolver.getInstance();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
-        InMemoryCommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+        SimpleCommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);
 
         try {
             dispatcher.dispatch(new MyCommand());

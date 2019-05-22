@@ -35,7 +35,7 @@ public class End2EndTests {
         resolver.register(new CheckInventoryItemOutHandler(repository), CheckInventoryItemOut.class);
         resolver.register(new DeactivateInventoryItemHandler(repository), DeactivateInventoryItem.class);
 
-        CommandDispatcher dispatcher = new InMemoryCommandDispatcher(resolver);
+        CommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);
 
         CreateInventoryItem createApple = CreateInventoryItem.create("Apple", 10);
         CreateInventoryItem createBanana = CreateInventoryItem.create("Banana", 7);
