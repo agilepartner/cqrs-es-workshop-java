@@ -2,6 +2,7 @@
     "cSpell.words": [
         "Akka",
         "Brandolini",
+        "Brandolini's",
         "CQRS",
         "Denormalize",
         "Denormalizing",
@@ -17,7 +18,8 @@
         "eventsourcing",
         "idempotence",
         "instanceof",
-        "parametrized"
+        "parametrized",
+        "webflux"
     ],
     "java.configuration.updateBuildConfiguration": "interactive"
 }

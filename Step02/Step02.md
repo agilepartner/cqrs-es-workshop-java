@@ -287,7 +287,6 @@ An alternative would be to use reflection to invoke the protected constructor an
 
 Arguably, the method `loadFromHistory` could be placed somewhere else than in the `AggregateRoot`. Is that really the responsibility of the `AggregateRoot` to reload form its history ? In a production system, we would also probably check that we are processing events in the right order, by checking that the version numbers of the events are sequential and raising an exception in case they are not. Once again, this is just a workshop, so let's not get ahead of ourselves.
 
-
 ## What's next
 
 In the next step, we will implement the Inventory Item domain.

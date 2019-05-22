@@ -17,7 +17,7 @@ This code is a workshop to build a Domain-Driven Design / CQRS / Event Sourcing 
 ### Visual Studio Code
 
 This workshop code was develop with [Visual Studio Code](https://code.visualstudio.com/).
-We recommend you install [Java Extension Pack](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack). 
+We recommend you install [Java Extension Pack](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack).
 
 For more details, just follow the tutorial [Writing Java with Visual Studio Code](https://code.visualstudio.com/docs/java/java-tutorial).
 
@@ -29,7 +29,7 @@ Alternatively, you can run [coder](https://coder.com/) on Docker.
 
 If you don't want to install a code editor locally, you can also use [Gitpod](https://www.gitpod.io/). Gitpod launches ready-to-code dev environments from any GitHub page. Simply go to the [Gitpod App](https://gitpod.io/workspaces/) and start coding. You can also install the [Gitpod Browser Extension](https://www.gitpod.io/docs/20_Browser_Extension/).
 
-For more details, just follow the [Getting Startd](https://www.gitpod.io/docs/10_Getting_Started/).
+For more details, just follow the [Getting Started](https://www.gitpod.io/docs/10_Getting_Started/).
 
 ## Get the code
 
@@ -56,7 +56,7 @@ The code for this workshop is inspired by the following repositories
 * [Step 06 : Materialized view (a.k.a. read models a.k.a. projections)](/Step06/Step06.md)
 * [Step 07 : Define an API in GraphQL](/Step07/Step07.md)
 * Step 08 : Create a simple front-end in Vue.js
-* Step 09 : Become reactive with Websocket
+* Step 09 : Become reactive with GraphQL subscriptions
 * Step 10 : Concurrency with actors
 * Step 11 : Introducing Kafka as messaging middleware
 * Step 12 : React to events with a process manager

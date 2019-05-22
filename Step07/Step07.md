@@ -16,7 +16,7 @@ dependencies {
 }
 ```
 
-Then add a file `schema.graphqls` in `src/main/resources` with the following content:
+Then add a file `schema.graphql` in `src/main/resources` with the following content:
 
 ```GraphQL
 type InventoryItem {
