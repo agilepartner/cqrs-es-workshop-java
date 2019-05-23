@@ -8,7 +8,7 @@ We are going to use [Spring Initializr](https://start.spring.io/) to bootstrap t
 2. Choose *Java* as a language
 3. Type the namespace you want to use i.e. *net.agilepartner.workshops.cqrs*
 4. Type *app* for the project name
-5. Choose the latest stable version i.e. *2.1.3*
+5. Choose the latest stable version i.e. *2.1.5*
 6. Add dependencies
     * DevTools
 
