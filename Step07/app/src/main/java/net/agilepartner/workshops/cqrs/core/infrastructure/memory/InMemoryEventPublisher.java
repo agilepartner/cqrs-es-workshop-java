@@ -10,13 +10,14 @@ public class InMemoryEventPublisher implements EventPublisher {
 
     public InMemoryEventPublisher(EventResolver resolver) {
         this.resolver = resolver;
-    }      
+    }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends Event> void publish(UUID aggregateId, T event) {
-        Iterable<EventHandler<T>> eventHandlers = resolver.findHandlersFor(event.getClass());
-        for (EventHandler<T> eventHandler : eventHandlers) {
-            eventHandler.handle(event);
-        }
+        resolver.findHandlersFor(event.getClass())
+                .forEach(eventHandler -> ((EventHandler<T>) eventHandler).handle(event));
     }
+
+
 }

@@ -18,11 +18,13 @@ public class MyAggregate extends AggregateRoot {
         }
     }
 
-    @SuppressWarnings("unused")
-    private void apply(NameChanged evt) {
-        name = evt.name;
+    @Override
+    protected <T extends Event> void apply(T event) {
+        if(event instanceof NameChanged) {
+            NameChanged evt = (NameChanged) event;
+            name = evt.name;
+        }
     }
-
 
     //Only for testing purpose
     public MyAggregate(UUID id) {
