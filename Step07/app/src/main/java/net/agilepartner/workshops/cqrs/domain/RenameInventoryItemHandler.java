@@ -12,8 +12,8 @@ public class RenameInventoryItemHandler implements CommandHandler<RenameInventor
 
     @Override
     public void handle(RenameInventoryItem command) throws InventoryItemDeactivatedException  {
-        InventoryItem item = repository.getById(command.aggregateId);
-        item.rename(command.name);
+        InventoryItem item = repository.getById(command.getAggregateId());
+        item.rename(command.getName());
         repository.save(item);
     }
 }

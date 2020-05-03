@@ -10,37 +10,37 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InventoryView {
     private final Map<UUID, InventoryItemReadModel> inventory = new ConcurrentHashMap<>();
 
-    public final EventHandler<InventoryItemCreated> createdHandler = event -> handle(event);
-    public final EventHandler<InventoryItemRenamed> renamedHandler = event -> handle(event);
-    public final EventHandler<InventoryItemCheckedIn> checkedInHandler = event -> handle(event);
-    public final EventHandler<InventoryItemCheckedOut> checkedOutHandler = event -> handle(event);
-    public final EventHandler<InventoryItemDeactivated> deactivatedHandler = event -> handle(event);
+    public final EventHandler<InventoryItemCreated> createdHandler = this::handle;
+    public final EventHandler<InventoryItemRenamed> renamedHandler = this::handle;
+    public final EventHandler<InventoryItemCheckedIn> checkedInHandler = this::handle;
+    public final EventHandler<InventoryItemCheckedOut> checkedOutHandler = this::handle;
+    public final EventHandler<InventoryItemDeactivated> deactivatedHandler = this::handle;
 
     public InventoryItemReadModel get(UUID aggregateId) {
         return inventory.get(aggregateId);
     }
 
     private void handle(InventoryItemCreated event) {
-        InventoryItemReadModel item = new InventoryItemReadModel(event.name, event.quantity);
-        inventory.put(event.aggregateId, item);
+        InventoryItemReadModel item = new InventoryItemReadModel(event.getName(), event.getQuantity());
+        inventory.put(event.getAggregateId(), item);
     }
 
     private void handle(InventoryItemRenamed event) {
-        InventoryItemReadModel existingItem = inventory.get(event.aggregateId);
-        inventory.put(event.aggregateId, new InventoryItemReadModel(event.name, existingItem.quantity));
+        InventoryItemReadModel existingItem = inventory.get(event.getAggregateId());
+        inventory.put(event.getAggregateId(), new InventoryItemReadModel(event.getName(), existingItem.getQuantity()));
     }
 
     private void handle(InventoryItemCheckedIn event) {
-        InventoryItemReadModel existingItem = inventory.get(event.aggregateId);
-        inventory.put(event.aggregateId, new InventoryItemReadModel(existingItem.name, existingItem.quantity + event.quantity));
+        InventoryItemReadModel existingItem = inventory.get(event.getAggregateId());
+        inventory.put(event.getAggregateId(), new InventoryItemReadModel(existingItem.getName(), existingItem.getQuantity() + event.getQuantity()));
     }
 
     private void handle(InventoryItemCheckedOut event) {
-        InventoryItemReadModel existingItem = inventory.get(event.aggregateId);
-        inventory.put(event.aggregateId, new InventoryItemReadModel(existingItem.name, existingItem.quantity - event.quantity));
+        InventoryItemReadModel existingItem = inventory.get(event.getAggregateId());
+        inventory.put(event.getAggregateId(), new InventoryItemReadModel(existingItem.getName(), existingItem.getQuantity() - event.getQuantity()));
     }
 
     private void handle(InventoryItemDeactivated event) {
-        inventory.remove(event.aggregateId);
+        inventory.remove(event.getAggregateId());
     }
 }

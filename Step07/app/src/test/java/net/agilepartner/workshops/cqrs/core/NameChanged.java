@@ -8,7 +8,7 @@ public class NameChanged extends Event {
 
     public NameChanged(UUID aggregateId, String name) {
         super();
-        super.aggregateId = aggregateId;
+        super.setAggregateId(aggregateId);
         this.name = name;
     }
 }

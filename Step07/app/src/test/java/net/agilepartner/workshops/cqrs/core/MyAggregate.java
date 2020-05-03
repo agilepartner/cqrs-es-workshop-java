@@ -13,7 +13,7 @@ public class MyAggregate extends AggregateRoot {
 
     public void changeName(String name) {
         Guards.checkNotNull(name);
-        if (this.name != name) {
+        if (!name.equals(this.name)) {
             raise(new NameChanged(id, name));
         }
     }

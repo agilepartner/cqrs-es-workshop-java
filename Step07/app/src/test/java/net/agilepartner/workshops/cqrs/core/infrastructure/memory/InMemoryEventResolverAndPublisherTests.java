@@ -77,20 +77,20 @@ public class InMemoryEventResolverAndPublisherTests {
         assertTrue(newHandler.wasCalled());
     }
 
-    private class FirstHandler extends TestHandler<NameChanged> {
+    private static class FirstHandler extends TestHandler<NameChanged> {
     }
 
-    private class SecondHandler extends TestHandler<NameChanged> {
+    private static class SecondHandler extends TestHandler<NameChanged> {
     }
 
-    private class NewEventHandler extends TestHandler<NewEvent> {
+    private static class NewEventHandler extends TestHandler<NewEvent> {
     }
 
-    private class NewEvent extends Event {
+    private static class NewEvent extends Event {
         private static final long serialVersionUID = 1L;
     }
 
-    private abstract class TestHandler<T extends Event> implements EventHandler<T>{
+    private abstract static class TestHandler<T extends Event> implements EventHandler<T>{
 
         private Boolean called;
 

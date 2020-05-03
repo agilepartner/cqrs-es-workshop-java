@@ -32,8 +32,8 @@ public abstract class AggregateRoot {
 
     public final void loadFromHistory(Iterable<? extends Event> history) {
         for (Event e : history) {
-            if(version + 1 == e.version) {
-                version = e.version;
+            if(version + 1 == e.getVersion()) {
+                version = e.getVersion();
             }
             applyChange(e, false);
         }
@@ -48,7 +48,7 @@ public abstract class AggregateRoot {
 
         if (isNew) {
             version++;
-            event.version = version;
+            event.setVersion(version);
             changes.add(event);
         }
     }

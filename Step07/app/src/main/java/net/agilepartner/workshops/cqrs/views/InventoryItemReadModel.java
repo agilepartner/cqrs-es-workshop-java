@@ -1,11 +1,11 @@
 package net.agilepartner.workshops.cqrs.views;
 
-public class InventoryItemReadModel {
-    public final String name;
-    public final int quantity;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-    public InventoryItemReadModel(String name, int quantity) {
-        this.name = name;
-        this.quantity = quantity;
-    }
+@Getter
+@RequiredArgsConstructor
+public class InventoryItemReadModel {
+    private final String name;
+    private final int quantity;
 }

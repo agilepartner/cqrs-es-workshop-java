@@ -63,18 +63,18 @@ public class InventoryItem extends AggregateRoot {
     protected <T extends Event> void apply(T event) {
         if (event instanceof InventoryItemCreated) {
             InventoryItemCreated evt = (InventoryItemCreated) event;
-            this.name = evt.name;
-            this.stock = evt.quantity;
+            this.name = evt.getName();
+            this.stock = evt.getQuantity();
             this.active = true;
         } else if (event instanceof InventoryItemRenamed) {
             InventoryItemRenamed evt = (InventoryItemRenamed) event;
-            this.name = evt.name;
+            this.name = evt.getName();
         } else if (event instanceof InventoryItemCheckedIn) {
             InventoryItemCheckedIn evt = (InventoryItemCheckedIn) event;
-            this.stock += evt.quantity;
+            this.stock += evt.getQuantity();
         } else if (event instanceof InventoryItemCheckedOut) {
             InventoryItemCheckedOut evt = (InventoryItemCheckedOut) event;
-            this.stock -= evt.quantity;
+            this.stock -= evt.getQuantity();
         } else if (event instanceof InventoryItemDeactivated) {
             this.active = false;
         } else {
