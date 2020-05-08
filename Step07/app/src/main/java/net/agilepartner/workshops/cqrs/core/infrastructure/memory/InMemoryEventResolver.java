@@ -13,20 +13,18 @@ public class InMemoryEventResolver implements EventResolver {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Event> Iterable<EventHandler<T>> findHandlersFor(Class<T> evtClass) {
-        List<EventHandler<?>> handlers = eventHandlers.get(evtClass);
+        List<EventHandler<? extends Event>> handlers = eventHandlers.get(evtClass);
         if (handlers == null)
             throw new UnsupportedOperationException(String.format("No handlers defined for event %s", evtClass.getSimpleName()));
 
         List<EventHandler<T>> concreteHandlers = new ArrayList<>();
-        for (EventHandler<?> handler : handlers) {
-            concreteHandlers.add((EventHandler<T>) handler);
-        }
-        
+        handlers.forEach(handler -> concreteHandlers.add((EventHandler<T>) handler));
+
         return concreteHandlers;
     }
 
     @Override
-    public <T extends Event> void register(EventHandler<? extends Event> handler, Class<T> evtClass) {
+    public <T extends Event> void register(EventHandler<T> handler, Class<T> evtClass) {
         eventHandlers.computeIfPresent(evtClass, (aClass, handlers) -> {
             handlers.add(handler);
             return handlers;
