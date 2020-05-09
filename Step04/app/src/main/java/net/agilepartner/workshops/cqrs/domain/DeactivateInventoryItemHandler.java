@@ -12,7 +12,7 @@ public class DeactivateInventoryItemHandler implements CommandHandler<Deactivate
 
     @Override
     public void handle(DeactivateInventoryItem command) {
-        InventoryItem item = repository.getById(command.aggregateId);
+        InventoryItem item = repository.getById(command.getAggregateId());
         item.deactivate();;
         repository.save(item);
     }

@@ -6,14 +6,21 @@ import net.agilepartner.workshops.cqrs.core.Command;
 
 public class RenameInventoryItem extends Command {
     private static final long serialVersionUID = -5605660277028203474L;
-    public String name;
+    private String name;
+
+    private RenameInventoryItem() {
+    }
 
     public static RenameInventoryItem create(UUID aggregateId, String name) {
         RenameInventoryItem cmd = new RenameInventoryItem();
-        cmd.id = UUID.randomUUID();
-        cmd.aggregateId = aggregateId;
+        cmd.setId(UUID.randomUUID());
+        cmd.setAggregateId(aggregateId);
         cmd.name = name;
 
         return cmd;
+    }
+
+    public String getName() {
+        return name;
     }
 }
