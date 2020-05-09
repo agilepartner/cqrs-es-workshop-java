@@ -1,5 +1,6 @@
 package net.agilepartner.workshops.cqrs.core.infrastructure.memory;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.agilepartner.workshops.cqrs.core.Command;
@@ -13,20 +14,20 @@ public class InMemoryCommandResolver implements CommandResolver {
         return instance;
     }
 
-    private final ConcurrentHashMap<String, CommandHandler<?>>  map = new ConcurrentHashMap<String, CommandHandler<?>>();
+    private final Map<Class<? extends Command>, CommandHandler<? extends Command>> map = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends Command> CommandHandler<T> findHandlerFor(Class<?> cmdClass) {
-        CommandHandler<?> handler = map.get((Object) cmdClass.getSimpleName());
+    public <T extends Command> CommandHandler<T> findHandlerFor(Class<T> cmdClass) {
+        CommandHandler<T> handler = (CommandHandler<T>) map.get(cmdClass);
         if (handler == null)
             throw new UnsupportedOperationException(String.format("No handler defined for command %s", cmdClass.getSimpleName()));
 
-        return (CommandHandler<T>) handler;
+        return handler;
     }
 
     @Override
-    public <T extends Command> void register(CommandHandler<T> handler, Class<?> cmdClass) {
-        map.put(cmdClass.getSimpleName(), handler);
+    public <T extends Command> void register(CommandHandler<T> handler, Class<T> cmdClass) {
+        map.put(cmdClass, handler);
     }
 }

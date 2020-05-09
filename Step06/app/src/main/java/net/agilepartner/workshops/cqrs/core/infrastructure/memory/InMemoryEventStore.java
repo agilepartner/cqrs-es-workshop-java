@@ -19,13 +19,13 @@ public class InMemoryEventStore implements EventStore {
 
     @Override
     public void save(UUID aggregateId, Iterable<? extends Event> newEvents, int expectedVersion) throws OptimisticLockingException {
-        List<Event> existingEvents;
+        List<Event> existingEvents = new ArrayList<>();
         int currentVersion = 0;
+
         if (events.containsKey(aggregateId)) {
             existingEvents = events.get(aggregateId);
             currentVersion = existingEvents.get(existingEvents.size() - 1).getVersion();
         } else {
-            existingEvents = new ArrayList<>();
             events.put(aggregateId, existingEvents);
         }
         if (expectedVersion != currentVersion)
