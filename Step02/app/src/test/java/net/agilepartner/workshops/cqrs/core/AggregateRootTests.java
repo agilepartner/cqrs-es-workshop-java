@@ -23,8 +23,8 @@ public class AggregateRootTests {
 		ArrayList<NameChanged> events = getEvents(aggregate);
 		assertEquals(events.size(), 1);
 		NameChanged evt = events.get(0);
-		assertEquals(id, evt.aggregateId);
-		assertEquals(1, evt.version);
+		assertEquals(id, evt.getAggregateId());
+		assertEquals(1, evt.getVersion());
 		assertEquals(name, evt.name);
 	}
 
@@ -42,8 +42,8 @@ public class AggregateRootTests {
 		ArrayList<NameChanged> events = getEvents(aggregate);
 		assertEquals(events.size(), 2);
 		NameChanged evt = events.get(1);
-		assertEquals(id, evt.aggregateId);
-		assertEquals(2, evt.version);
+		assertEquals(id, evt.getAggregateId());
+		assertEquals(2, evt.getVersion());
 		assertEquals(name, evt.name);
 	}
 
@@ -56,9 +56,9 @@ public class AggregateRootTests {
 
 		ArrayList<NameChanged> history = new ArrayList<>();
 		NameChanged evt1 = new NameChanged(id, name1);
-		evt1.version = 1;
+		evt1.setVersion(1);
 		NameChanged evt2 = new NameChanged(id, name2);
-		evt2.version = 2;
+		evt2.setVersion(2);
 
 		history.add(evt1);
 		history.add(evt2);
