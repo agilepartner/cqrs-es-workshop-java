@@ -1,19 +1,26 @@
 package net.agilepartner.workshops.cqrs.domain;
 
-import java.util.UUID;
-
 import net.agilepartner.workshops.cqrs.core.Command;
+
+import java.util.UUID;
 
 public class CheckInventoryItemOut extends Command {
     private static final long serialVersionUID = 2660471147867347530L;
-    public int quantity;
+    private int quantity;
+
+    private CheckInventoryItemOut() {
+    }
 
     public static CheckInventoryItemOut create(UUID aggregateId, int quantity) {
         CheckInventoryItemOut cmd = new CheckInventoryItemOut();
-        cmd.id = UUID.randomUUID();
-        cmd.aggregateId = aggregateId;
+        cmd.setId(UUID.randomUUID());
+        cmd.setAggregateId(aggregateId);
         cmd.quantity = quantity;
 
         return cmd;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 }

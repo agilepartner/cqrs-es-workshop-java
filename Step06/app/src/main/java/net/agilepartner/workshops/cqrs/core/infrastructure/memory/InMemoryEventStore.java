@@ -23,7 +23,7 @@ public class InMemoryEventStore implements EventStore {
         int currentVersion = 0;
         if (events.containsKey(aggregateId)) {
             existingEvents = events.get(aggregateId);
-            currentVersion = existingEvents.get(existingEvents.size() - 1).version;
+            currentVersion = existingEvents.get(existingEvents.size() - 1).getVersion();
         } else {
             existingEvents = new ArrayList<>();
             events.put(aggregateId, existingEvents);
