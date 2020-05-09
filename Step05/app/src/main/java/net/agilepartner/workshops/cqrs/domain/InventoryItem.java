@@ -59,24 +59,24 @@ public class InventoryItem extends AggregateRoot {
 
     @SuppressWarnings("unused")
     private void apply(InventoryItemCreated evt) {
-        this.name = evt.name;
-        this.stock = evt.quantity;
+        this.name = evt.getName();
+        this.stock = evt.getQuantity();
         this.active = true;
     }
 
     @SuppressWarnings("unused")
     private void apply(InventoryItemRenamed evt) {
-        this.name = evt.name;
+        this.name = evt.getName();
     }
 
     @SuppressWarnings("unused")
     private void apply(InventoryItemCheckedIn evt) {
-        this.stock += evt.quantity;
+        this.stock += evt.getQuantity();
     }
 
     @SuppressWarnings("unused")
     private void apply(InventoryItemCheckedOut evt) {
-        this.stock -= evt.quantity;
+        this.stock -= evt.getQuantity();
     }
 
     @SuppressWarnings("unused")

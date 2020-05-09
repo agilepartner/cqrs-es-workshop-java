@@ -20,7 +20,7 @@ public class MyAggregate extends AggregateRoot {
 
     @SuppressWarnings("unused")
     private void apply(NameChanged evt) {
-        name = evt.name;
+        name = evt.getName();
     }
 
 
