@@ -44,7 +44,7 @@ public class AggregateRootTests {
 		ArrayList<NameChanged> events = Helper.getEvents(aggregate, NameChanged.class);
 		assertEquals(events.size(), 2);
 		NameChanged evt = events.get(1);
-		assertEquals(id, evt.getVersion());
+		assertEquals(id, evt.getAggregateId());
 		assertEquals(name, evt.getName());
 	}
 
