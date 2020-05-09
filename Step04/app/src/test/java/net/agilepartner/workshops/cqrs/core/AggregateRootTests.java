@@ -1,13 +1,12 @@
 package net.agilepartner.workshops.cqrs.core;
 
-import static org.junit.Assert.assertEquals;
+import net.agilepartner.workshops.cqrs.Helper;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.junit.Test;
-
-import net.agilepartner.workshops.cqrs.Helper;
+import static org.junit.Assert.assertEquals;
 
 public class AggregateRootTests {
 
@@ -27,7 +26,7 @@ public class AggregateRootTests {
 		NameChanged evt = events.get(0);
 		assertEquals(id, evt.getAggregateId());
 		assertEquals(1, evt.getVersion());
-		assertEquals(name, evt.name);
+		assertEquals(name, evt.getName());
 	}
 
 	@Test
@@ -46,7 +45,7 @@ public class AggregateRootTests {
 		NameChanged evt = events.get(1);
 		assertEquals(id, evt.getAggregateId());
 		assertEquals(2, evt.getVersion());
-		assertEquals(name, evt.name);
+		assertEquals(name, evt.getName());
 	}
 
 	@Test

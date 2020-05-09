@@ -1,10 +1,10 @@
 package net.agilepartner.workshops.cqrs.core.infrastructure.memory;
 
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 import net.agilepartner.workshops.cqrs.core.AggregateRoot;
 import net.agilepartner.workshops.cqrs.core.Repository;
+
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryRepository<T extends AggregateRoot> implements Repository<T> {
     private final ConcurrentHashMap<UUID, T> map = new ConcurrentHashMap<UUID, T>();
