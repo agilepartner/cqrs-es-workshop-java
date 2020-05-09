@@ -12,8 +12,8 @@ public class CheckInventoryItemInHandler implements CommandHandler<CheckInventor
 
     @Override
     public void handle(CheckInventoryItemIn command) throws InventoryItemDeactivatedException  {
-        InventoryItem item = repository.getById(command.aggregateId);
-        item.checkIn(command.quantity);
+        InventoryItem item = repository.getById(command.getAggregateId());
+        item.checkIn(command.getQuantity());
         repository.save(item);
     }
 }

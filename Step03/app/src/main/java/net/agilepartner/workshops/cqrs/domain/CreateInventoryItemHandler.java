@@ -12,7 +12,7 @@ public class CreateInventoryItemHandler implements CommandHandler<CreateInventor
 
     @Override
     public void handle(CreateInventoryItem command) {
-        InventoryItem item = InventoryItem.create(command.aggregateId, command.name, command.initialQuantity);
+        InventoryItem item = InventoryItem.create(command.getAggregateId(), command.getName(), command.getInitialQuantity());
         repository.save(item);
     }
 }
