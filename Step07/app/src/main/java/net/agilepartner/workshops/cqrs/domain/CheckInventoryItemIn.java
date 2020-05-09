@@ -1,18 +1,15 @@
 package net.agilepartner.workshops.cqrs.domain;
 
-import java.util.UUID;
-
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import net.agilepartner.workshops.cqrs.core.Command;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+import java.util.UUID;
+
 public class CheckInventoryItemIn extends Command {
     private static final long serialVersionUID = 1L;
 
     private int quantity;
+
+    private CheckInventoryItemIn() {}
 
     public static CheckInventoryItemIn create(UUID aggregateId, int quantity) {
         CheckInventoryItemIn cmd = new CheckInventoryItemIn();
@@ -21,5 +18,9 @@ public class CheckInventoryItemIn extends Command {
         cmd.quantity = quantity;
 
         return cmd;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 }
