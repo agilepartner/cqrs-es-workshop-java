@@ -81,7 +81,7 @@ public class End2EndTests {
     }
 
     private CommandDispatcher buildCommandDispatcher(Repository<InventoryItem> repository) {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
         resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
         resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);

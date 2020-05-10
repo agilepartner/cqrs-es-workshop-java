@@ -14,7 +14,7 @@ public class End2EndTests {
 	public void run() {
 		Repository<InventoryItem> repository = new InMemoryRepository<InventoryItem>();
 
-		CommandResolver resolver = InMemoryCommandResolver.getInstance();
+		CommandResolver resolver = new InMemoryCommandResolver();
 		resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
 		resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
 		resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);

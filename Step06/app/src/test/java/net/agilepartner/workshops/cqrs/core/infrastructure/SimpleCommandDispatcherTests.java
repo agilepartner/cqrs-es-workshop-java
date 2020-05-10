@@ -33,7 +33,7 @@ public class SimpleCommandDispatcherTests {
 
     @Test
     public void findHandlerForMyCommand() {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
         CommandHandler<MyCommand> handler = resolver.findHandlerFor(MyCommand.class);
@@ -48,7 +48,7 @@ public class SimpleCommandDispatcherTests {
     @Test
     public void dispatchMyCommand() {
         handlerCalled = false;
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
         SimpleCommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);

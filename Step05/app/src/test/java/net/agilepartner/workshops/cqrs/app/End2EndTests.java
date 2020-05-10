@@ -1,12 +1,15 @@
 package net.agilepartner.workshops.cqrs.app;
 
+import net.agilepartner.workshops.cqrs.core.DomainException;
+import net.agilepartner.workshops.cqrs.core.EventPublisher;
+import net.agilepartner.workshops.cqrs.core.Repository;
+import net.agilepartner.workshops.cqrs.core.infrastructure.*;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryCommandResolver;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryEventStore;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryRepository;
+import net.agilepartner.workshops.cqrs.domain.*;
 import org.junit.Assert;
 import org.junit.Test;
-
-import net.agilepartner.workshops.cqrs.core.*;
-import net.agilepartner.workshops.cqrs.core.infrastructure.*;
-import net.agilepartner.workshops.cqrs.core.infrastructure.memory.*;
-import net.agilepartner.workshops.cqrs.domain.*;
 
 public class End2EndTests {
 
@@ -28,7 +31,7 @@ public class End2EndTests {
     }
 
     private void runEnd2EndTests(Repository<InventoryItem> repository) {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
         resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
         resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);

@@ -8,11 +8,6 @@ import net.agilepartner.workshops.cqrs.core.CommandHandler;
 import net.agilepartner.workshops.cqrs.core.infrastructure.CommandResolver;
 
 public class InMemoryCommandResolver implements CommandResolver {
-    private final static CommandResolver instance = new InMemoryCommandResolver();
-
-    public static CommandResolver getInstance() {
-        return instance;
-    }
 
     private final Map<Class<? extends Command>, CommandHandler<? extends Command>> map = new ConcurrentHashMap<>();
 

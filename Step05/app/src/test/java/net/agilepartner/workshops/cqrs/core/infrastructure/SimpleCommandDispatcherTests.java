@@ -1,16 +1,14 @@
 package net.agilepartner.workshops.cqrs.core.infrastructure;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import net.agilepartner.workshops.cqrs.core.Command;
 import net.agilepartner.workshops.cqrs.core.CommandHandler;
 import net.agilepartner.workshops.cqrs.core.DomainException;
-import net.agilepartner.workshops.cqrs.core.infrastructure.CommandResolver;
 import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryCommandResolver;
+import org.junit.Assert;
+import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class SimpleCommandDispatcherTests {
     private Boolean handlerCalled;
@@ -33,7 +31,7 @@ public class SimpleCommandDispatcherTests {
 
     @Test
     public void findHandlerForMyCommand() {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
         CommandHandler<MyCommand> handler = resolver.findHandlerFor(MyCommand.class);
@@ -48,7 +46,7 @@ public class SimpleCommandDispatcherTests {
     @Test
     public void dispatchMyCommand() {
         handlerCalled = false;
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
         SimpleCommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);
