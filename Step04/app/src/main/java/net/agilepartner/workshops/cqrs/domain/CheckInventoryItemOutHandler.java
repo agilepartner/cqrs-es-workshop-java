@@ -12,8 +12,8 @@ public class CheckInventoryItemOutHandler implements CommandHandler<CheckInvento
 
     @Override
     public void handle(CheckInventoryItemOut command) throws NotEnoughStockException, InventoryItemDeactivatedException  {
-        InventoryItem item = repository.getById(command.aggregateId);
-        item.checkOut(command.quantity);
+        InventoryItem item = repository.getById(command.getAggregateId());
+        item.checkOut(command.getQuantity());
         repository.save(item);
     }
 }

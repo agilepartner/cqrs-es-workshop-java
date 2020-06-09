@@ -1,17 +1,25 @@
 package net.agilepartner.workshops.cqrs.domain;
 
-import java.util.UUID;
-
 import net.agilepartner.workshops.cqrs.core.Command;
+
+import java.util.UUID;
 
 public class RenameInventoryItem extends Command {
     private static final long serialVersionUID = -5605660277028203474L;
-    public String name;
+
+    private String name;
+
+    private RenameInventoryItem() {
+    }
+
+    public String getName() {
+        return name;
+    }
 
     public static RenameInventoryItem create(UUID aggregateId, String name) {
         RenameInventoryItem cmd = new RenameInventoryItem();
-        cmd.id = UUID.randomUUID();
-        cmd.aggregateId = aggregateId;
+        cmd.setId(UUID.randomUUID());
+        cmd.setAggregateId(aggregateId);
         cmd.name = name;
 
         return cmd;

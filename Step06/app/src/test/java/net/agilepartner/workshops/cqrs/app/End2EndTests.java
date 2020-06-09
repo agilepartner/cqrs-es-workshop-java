@@ -55,11 +55,11 @@ public class End2EndTests {
         InventoryItemReadModel apples = view.get(appleId);
         assertNull(apples);
         InventoryItemReadModel bananas = view.get(bananaId);
-        assertEquals(Fruits.Banana, bananas.name);
-        assertEquals(5, bananas.quantity);
+        assertEquals(Fruits.Banana, bananas.getName());
+        assertEquals(5, bananas.getQuantity());
         InventoryItemReadModel oranges = view.get(orangeId);
-        assertEquals(Fruits.Pear, oranges.name);
-        assertEquals(0, oranges.quantity);
+        assertEquals(Fruits.Pear, oranges.getName());
+        assertEquals(0, oranges.getQuantity());
     }
 
     private EventPublisher buildEventPublisher(InventoryView view) {
@@ -81,7 +81,7 @@ public class End2EndTests {
     }
 
     private CommandDispatcher buildCommandDispatcher(Repository<InventoryItem> repository) {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
         resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
         resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);
@@ -93,11 +93,11 @@ public class End2EndTests {
 
     private void runEnd2EndTests(CommandDispatcher dispatcher) {
         CreateInventoryItem createApple = CreateInventoryItem.create(Fruits.Apple, 10);
-        appleId = createApple.aggregateId;
+        appleId = createApple.getAggregateId();
         CreateInventoryItem createBanana = CreateInventoryItem.create(Fruits.Banana, 7);
-        bananaId = createBanana.aggregateId;
+        bananaId = createBanana.getAggregateId();
         CreateInventoryItem createOrange = CreateInventoryItem.create(Fruits.Orange, 5);
-        orangeId = createOrange.aggregateId;
+        orangeId = createOrange.getAggregateId();
 
         try {
             // Create fruits
@@ -106,30 +106,30 @@ public class End2EndTests {
             dispatcher.dispatch(createOrange);
 
             // Check out
-            dispatcher.dispatch(CheckInventoryItemOut.create(createApple.aggregateId, 5)); // 5 apples left
-            dispatcher.dispatch(CheckInventoryItemOut.create(createBanana.aggregateId, 5)); // 2 bananas left
-            dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // 0 oranges left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createApple.getAggregateId(), 5)); // 5 apples left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createBanana.getAggregateId(), 5)); // 2 bananas left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.getAggregateId(), 5)); // 0 oranges left
 
             // Checking out too many oranges
             try {
-                dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // Cannot check more
+                dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.getAggregateId(), 5)); // Cannot check more
                                                                                                 // oranges out
                 Assert.fail("Should have raised NotEnoughStockException");
             } catch (NotEnoughStockException ex) {
             }
 
             // Renaming orange to pear
-            dispatcher.dispatch(RenameInventoryItem.create(createOrange.aggregateId, "Pear")); // 0 pears left
+            dispatcher.dispatch(RenameInventoryItem.create(createOrange.getAggregateId(), "Pear")); // 0 pears left
 
             // Resupplying bananas (everybody loves bananas)
-            dispatcher.dispatch(CheckInventoryItemIn.create(createBanana.aggregateId, 3)); // 5 bananas left
+            dispatcher.dispatch(CheckInventoryItemIn.create(createBanana.getAggregateId(), 3)); // 5 bananas left
 
             // Nobody wants apples anymore
-            dispatcher.dispatch(DeactivateInventoryItem.create(createApple.aggregateId)); // apple item deactivated
+            dispatcher.dispatch(DeactivateInventoryItem.create(createApple.getAggregateId())); // apple item deactivated
 
             // Can't check in an item that is deactivated
             try {
-                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.aggregateId, 5));
+                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.getAggregateId(), 5));
                 Assert.fail("Should not be able to check apples in because the item is deactivated");
             } catch (InventoryItemDeactivatedException ex) {
             }

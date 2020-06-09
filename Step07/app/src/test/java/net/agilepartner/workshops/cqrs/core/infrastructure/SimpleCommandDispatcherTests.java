@@ -15,7 +15,7 @@ import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryComman
 public class SimpleCommandDispatcherTests {
     private Boolean handlerCalled;
 
-    public class MyCommand extends Command {
+    public static class MyCommand extends Command {
         private static final long serialVersionUID = 7729006766074319990L;
 
         public MyCommand() {
@@ -33,7 +33,7 @@ public class SimpleCommandDispatcherTests {
 
     @Test
     public void findHandlerForMyCommand() {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
         CommandHandler<MyCommand> handler = resolver.findHandlerFor(MyCommand.class);
@@ -48,7 +48,7 @@ public class SimpleCommandDispatcherTests {
     @Test
     public void dispatchMyCommand() {
         handlerCalled = false;
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new MyCommandHandler(), MyCommand.class);
 
         SimpleCommandDispatcher dispatcher = new SimpleCommandDispatcher(resolver);

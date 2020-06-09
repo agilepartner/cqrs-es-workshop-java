@@ -1,15 +1,18 @@
 package net.agilepartner.workshops.cqrs.domain;
 
-import java.util.UUID;
-
 import net.agilepartner.workshops.cqrs.core.AggregateRoot;
 import net.agilepartner.workshops.cqrs.core.Guards;
+
+import java.util.UUID;
+import java.util.function.Consumer;
 
 public class InventoryItem extends AggregateRoot {
     private String name;
     private int stock;
     private Boolean active;
-    
+
+
+
     public InventoryItem(UUID aggregateId) {
         super(aggregateId);
     }
@@ -19,6 +22,15 @@ public class InventoryItem extends AggregateRoot {
         raise(InventoryItemCreated.create(aggregateId, name, quantity));
     }
 
+    @Override
+    protected void registerEventsConsumer() {
+        eventsConsumer.put(InventoryItemCreated.class, (Consumer<InventoryItemCreated>) this::apply);
+        eventsConsumer.put(InventoryItemRenamed.class, (Consumer<InventoryItemRenamed>) this::apply);
+        eventsConsumer.put(InventoryItemCheckedIn.class, (Consumer<InventoryItemCheckedIn>) this::apply);
+        eventsConsumer.put(InventoryItemCheckedOut.class, (Consumer<InventoryItemCheckedOut>) this::apply);
+        eventsConsumer.put(InventoryItemDeactivated.class, (Consumer<InventoryItemDeactivated>) this::apply);
+    }
+
     public static InventoryItem create(UUID aggregateId, String name, int quantity) {
         return new InventoryItem(aggregateId, name, quantity);
     }
@@ -26,7 +38,7 @@ public class InventoryItem extends AggregateRoot {
     public void rename(String name) throws InventoryItemDeactivatedException {
         checkActivated();
         Guards.checkNotNullOrEmpty(name);
-        if (this.name != name)
+        if (!this.name.equals(name))
             raise(InventoryItemRenamed.create(id, name));
     }
 
@@ -42,7 +54,7 @@ public class InventoryItem extends AggregateRoot {
         if (quantity <= 0)
             throw new IllegalArgumentException("Quantity must be positive");
         if (this.stock < quantity)
-            throw new NotEnoughStockException(String.format("Cannot check %d %s out because there is only %d left", quantity, name,this.stock));
+            throw new NotEnoughStockException(String.format("Cannot check %d %s out because there is only %d left", quantity, name, this.stock));
 
         raise(InventoryItemCheckedOut.create(id, quantity));
     }
@@ -57,30 +69,26 @@ public class InventoryItem extends AggregateRoot {
             throw new InventoryItemDeactivatedException(String.format("Inventory Item %s (id %s) is deactivated", name, id.toString()));
     }
 
-    @SuppressWarnings("unused")
-    private void apply(InventoryItemCreated evt) {
-        this.name = evt.name;
-        this.stock = evt.quantity;
+    private void apply(InventoryItemCreated event) {
+        this.name = event.getName();
+        this.stock = event.getQuantity();
         this.active = true;
     }
 
-    @SuppressWarnings("unused")
-    private void apply(InventoryItemRenamed evt) {
-        this.name = evt.name;
+    private void apply(InventoryItemRenamed event) {
+        this.name = event.getName();
     }
 
-    @SuppressWarnings("unused")
-    private void apply(InventoryItemCheckedIn evt) {
-        this.stock += evt.quantity;
+    private void apply(InventoryItemCheckedIn event) {
+        this.stock += event.getQuantity();
     }
 
-    @SuppressWarnings("unused")
-    private void apply(InventoryItemCheckedOut evt) {
-        this.stock -= evt.quantity;
+    private void apply(InventoryItemCheckedOut event) {
+        this.stock -= event.getQuantity();
     }
 
-    @SuppressWarnings("unused")
-    private void apply(InventoryItemDeactivated evt) {
+    private void apply(InventoryItemDeactivated event) {
         this.active = false;
     }
+
 }

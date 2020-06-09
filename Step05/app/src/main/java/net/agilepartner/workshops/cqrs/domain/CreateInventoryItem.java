@@ -8,16 +8,27 @@ public class CreateInventoryItem extends Command {
 
     private static final long serialVersionUID = 1L;
     
-    public String name;
-    public int initialQuantity;
+    private String name;
+    private int initialQuantity;
+
+    private CreateInventoryItem() {
+    }
 
     public static CreateInventoryItem create(String name, int initialQuantity) {
         CreateInventoryItem cmd = new CreateInventoryItem();
-        cmd.id = UUID.randomUUID();
-        cmd.aggregateId = UUID.randomUUID();
+        cmd.setId(UUID.randomUUID());
+        cmd.setAggregateId(UUID.randomUUID());
         cmd.name = name;
         cmd.initialQuantity = initialQuantity;
 
         return cmd;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getInitialQuantity() {
+        return initialQuantity;
     }
 }

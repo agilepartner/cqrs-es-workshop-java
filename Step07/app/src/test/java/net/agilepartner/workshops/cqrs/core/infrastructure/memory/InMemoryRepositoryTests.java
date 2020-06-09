@@ -14,14 +14,14 @@ public class InMemoryRepositoryTests {
 
     @Test
     public void getByIdDoesNotReturnValue() {
-        InMemoryRepository<MyAggregate> repository = new InMemoryRepository<MyAggregate>();
+        InMemoryRepository<MyAggregate> repository = new InMemoryRepository<>();
         MyAggregate aggregate = repository.getById(UUID.randomUUID());
         assertNull(aggregate);
     }
 
     @Test
     public void saveAndGetByIdReturnsValue() {
-        InMemoryRepository<MyAggregate> repository = new InMemoryRepository<MyAggregate>();
+        InMemoryRepository<MyAggregate> repository = new InMemoryRepository<>();
         UUID aggregateId = UUID.randomUUID();
 
         repository.save(new MyAggregate(aggregateId));

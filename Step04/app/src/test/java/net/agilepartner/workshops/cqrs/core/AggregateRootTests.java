@@ -1,13 +1,12 @@
 package net.agilepartner.workshops.cqrs.core;
 
-import static org.junit.Assert.assertEquals;
+import net.agilepartner.workshops.cqrs.Helper;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.junit.Test;
-
-import net.agilepartner.workshops.cqrs.Helper;
+import static org.junit.Assert.assertEquals;
 
 public class AggregateRootTests {
 
@@ -25,9 +24,9 @@ public class AggregateRootTests {
 		ArrayList<NameChanged> events = Helper.getEvents(aggregate, NameChanged.class);
 		assertEquals(events.size(), 1);
 		NameChanged evt = events.get(0);
-		assertEquals(id, evt.aggregateId);
-		assertEquals(1, evt.version);
-		assertEquals(name, evt.name);
+		assertEquals(id, evt.getAggregateId());
+		assertEquals(1, evt.getVersion());
+		assertEquals(name, evt.getName());
 	}
 
 	@Test
@@ -44,9 +43,9 @@ public class AggregateRootTests {
 		ArrayList<NameChanged> events = Helper.getEvents(aggregate, NameChanged.class);
 		assertEquals(events.size(), 2);
 		NameChanged evt = events.get(1);
-		assertEquals(id, evt.aggregateId);
-		assertEquals(2, evt.version);
-		assertEquals(name, evt.name);
+		assertEquals(id, evt.getAggregateId());
+		assertEquals(2, evt.getVersion());
+		assertEquals(name, evt.getName());
 	}
 
 	@Test
@@ -58,9 +57,9 @@ public class AggregateRootTests {
 
 		ArrayList<NameChanged> history = new ArrayList<>();
 		NameChanged evt1 = new NameChanged(id, name1);
-		evt1.version = 1;
+		evt1.setVersion(1);
 		NameChanged evt2 = new NameChanged(id, name2);
-		evt2.version = 2;
+		evt2.setVersion(2);
 
 		history.add(evt1);
 		history.add(evt2);

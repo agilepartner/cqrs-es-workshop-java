@@ -23,8 +23,8 @@ public class EventStoreAwareRepositoryTests {
     @Test
     public void saveNewAggregate() {
         Repository<MyAggregate> repository = new EventStoreAwareRepository<>(
-            eventStore, 
-            id -> new MyAggregate(id));
+            eventStore,
+                MyAggregate::new);
 
         UUID aggregateId = UUID.randomUUID();
         MyAggregate aggregate = new MyAggregate(aggregateId);
@@ -47,7 +47,7 @@ public class EventStoreAwareRepositoryTests {
     public void saveExistingAggregate() {
         Repository<MyAggregate> repository = new EventStoreAwareRepository<>(
             eventStore,
-            id -> new MyAggregate(id));
+                MyAggregate::new);
 
         UUID aggregateId = UUID.randomUUID();
         MyAggregate aggregate = new MyAggregate(aggregateId);

@@ -22,39 +22,39 @@ public class InventoryView {
     class InventoryItemCreatedHandler implements EventHandler<InventoryItemCreated> {
         @Override
         public void handle(InventoryItemCreated event) {
-            InventoryItemReadModel item = new InventoryItemReadModel(event.name, event.quantity);
-            inventory.put(event.aggregateId, item);
+            InventoryItemReadModel item = new InventoryItemReadModel(event.getName(), event.getQuantity());
+            inventory.put(event.getAggregateId(), item);
         }
     }
 
     class InventoryItemRenamedHandler implements EventHandler<InventoryItemRenamed> {
         @Override
         public void handle(InventoryItemRenamed event) {
-            InventoryItemReadModel existingItem = inventory.get(event.aggregateId);
-            inventory.put(event.aggregateId, new InventoryItemReadModel(event.name, existingItem.quantity));
+            InventoryItemReadModel existingItem = inventory.get(event.getAggregateId());
+            inventory.put(event.getAggregateId(), new InventoryItemReadModel(event.getName(), existingItem.getQuantity()));
         }
     }
 
     class InventoryItemCheckedInHandler implements EventHandler<InventoryItemCheckedIn> {
         @Override
         public void handle(InventoryItemCheckedIn event) {
-            InventoryItemReadModel existingItem = inventory.get(event.aggregateId);
-            inventory.put(event.aggregateId, new InventoryItemReadModel(existingItem.name, existingItem.quantity + event.quantity));
+            InventoryItemReadModel existingItem = inventory.get(event.getAggregateId());
+            inventory.put(event.getAggregateId(), new InventoryItemReadModel(existingItem.getName(), existingItem.getQuantity() + event.getQuantity()));
         }
     }
 
     class InventoryItemCheckedOutHandler implements EventHandler<InventoryItemCheckedOut> {
         @Override
         public void handle(InventoryItemCheckedOut event) {
-            InventoryItemReadModel existingItem = inventory.get(event.aggregateId);
-            inventory.put(event.aggregateId, new InventoryItemReadModel(existingItem.name, existingItem.quantity - event.quantity));
+            InventoryItemReadModel existingItem = inventory.get(event.getAggregateId());
+            inventory.put(event.getAggregateId(), new InventoryItemReadModel(existingItem.getName(), existingItem.getQuantity() - event.getQuantity()));
         }
     }
 
     class InventoryItemDeactivatedHandler implements EventHandler<InventoryItemDeactivated> {
         @Override
         public void handle(InventoryItemDeactivated event) {
-            inventory.remove(event.aggregateId);
+            inventory.remove(event.getAggregateId());
         }
     }
 }

@@ -1,12 +1,15 @@
 package net.agilepartner.workshops.cqrs.app;
 
+import net.agilepartner.workshops.cqrs.core.DomainException;
+import net.agilepartner.workshops.cqrs.core.EventPublisher;
+import net.agilepartner.workshops.cqrs.core.Repository;
+import net.agilepartner.workshops.cqrs.core.infrastructure.*;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryCommandResolver;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryEventStore;
+import net.agilepartner.workshops.cqrs.core.infrastructure.memory.InMemoryRepository;
+import net.agilepartner.workshops.cqrs.domain.*;
 import org.junit.Assert;
 import org.junit.Test;
-
-import net.agilepartner.workshops.cqrs.core.*;
-import net.agilepartner.workshops.cqrs.core.infrastructure.*;
-import net.agilepartner.workshops.cqrs.core.infrastructure.memory.*;
-import net.agilepartner.workshops.cqrs.domain.*;
 
 public class End2EndTests {
 
@@ -28,7 +31,7 @@ public class End2EndTests {
     }
 
     private void runEnd2EndTests(Repository<InventoryItem> repository) {
-        CommandResolver resolver = InMemoryCommandResolver.getInstance();
+        CommandResolver resolver = new InMemoryCommandResolver();
         resolver.register(new CreateInventoryItemHandler(repository), CreateInventoryItem.class);
         resolver.register(new RenameInventoryItemHandler(repository), RenameInventoryItem.class);
         resolver.register(new CheckInventoryItemInHandler(repository), CheckInventoryItemIn.class);
@@ -48,30 +51,30 @@ public class End2EndTests {
             dispatcher.dispatch(createOrange);
 
             // Check out
-            dispatcher.dispatch(CheckInventoryItemOut.create(createApple.aggregateId, 5)); // 5 apples left
-            dispatcher.dispatch(CheckInventoryItemOut.create(createBanana.aggregateId, 5)); // 2 bananas left
-            dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // 0 oranges left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createApple.getAggregateId(), 5)); // 5 apples left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createBanana.getAggregateId(), 5)); // 2 bananas left
+            dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.getAggregateId(), 5)); // 0 oranges left
 
             // Checking out too many oranges
             try {
-                dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.aggregateId, 5)); // Cannot check more
+                dispatcher.dispatch(CheckInventoryItemOut.create(createOrange.getAggregateId(), 5)); // Cannot check more
                                                                                                 // oranges out
                 Assert.fail("Should have raised NotEnoughStockException");
             } catch (NotEnoughStockException ex) {
             }
 
             // Renaming orange to pear
-            dispatcher.dispatch(RenameInventoryItem.create(createOrange.aggregateId, "Pear")); // 0 pears left
+            dispatcher.dispatch(RenameInventoryItem.create(createOrange.getAggregateId(), "Pear")); // 0 pears left
 
             // Resupplying bananas (everybody loves bananas)
-            dispatcher.dispatch(CheckInventoryItemIn.create(createBanana.aggregateId, 3)); // 5 bananas left
+            dispatcher.dispatch(CheckInventoryItemIn.create(createBanana.getAggregateId(), 3)); // 5 bananas left
 
             // Nobody wants apples anymore
-            dispatcher.dispatch(DeactivateInventoryItem.create(createApple.aggregateId)); // apple item deactivated
+            dispatcher.dispatch(DeactivateInventoryItem.create(createApple.getAggregateId())); // apple item deactivated
 
             // Can't check in an item that is deactivated
             try {
-                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.aggregateId, 5));
+                dispatcher.dispatch(CheckInventoryItemIn.create(createApple.getAggregateId(), 5));
                 Assert.fail("Should not be able to check apples in because the item is deactivated");
             } catch (InventoryItemDeactivatedException ex) {
             }

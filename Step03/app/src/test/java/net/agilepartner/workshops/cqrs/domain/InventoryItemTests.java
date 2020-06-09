@@ -33,10 +33,10 @@ public class InventoryItemTests {
         ArrayList<InventoryItemCreated> events = Helper.getEvents(item, InventoryItemCreated.class);
         assertEquals(1, events.size());
         InventoryItemCreated evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(name, evt.name);
-        assertEquals(quantity, evt.quantity);
-        assertEquals(1, evt.version);
+        assertEquals(aggregateId, evt.getAggregateId());
+        assertEquals(name, evt.getName());
+        assertEquals(quantity, evt.getQuantity());
+        assertEquals(1, evt.getVersion());
     }
 
     @Test
@@ -65,9 +65,9 @@ public class InventoryItemTests {
         ArrayList<InventoryItemRenamed> events = Helper.getEvents(item, InventoryItemRenamed.class);
         assertEquals(1, events.size());
         InventoryItemRenamed evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(newName, evt.name);
-        assertEquals(2, evt.version);
+        assertEquals(aggregateId, evt.getAggregateId());
+        assertEquals(newName, evt.getName());
+        assertEquals(2, evt.getVersion());
     }
 
     @Test()
@@ -141,9 +141,9 @@ public class InventoryItemTests {
         ArrayList<InventoryItemCheckedIn> events = Helper.getEvents(item, InventoryItemCheckedIn.class);
         assertEquals(1, events.size());
         InventoryItemCheckedIn evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(checkedInQuantity, evt.quantity);
-        assertEquals(2, evt.version);
+        assertEquals(aggregateId, evt.getAggregateId());
+        assertEquals(checkedInQuantity, evt.getQuantity());
+        assertEquals(2, evt.getVersion());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -194,9 +194,9 @@ public class InventoryItemTests {
         ArrayList<InventoryItemCheckedOut> events = Helper.getEvents(item, InventoryItemCheckedOut.class);
         assertEquals(1, events.size());
         InventoryItemCheckedOut evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(checkedOutQuantity, evt.quantity);
-        assertEquals(2, evt.version);
+        assertEquals(aggregateId, evt.getAggregateId());
+        assertEquals(checkedOutQuantity, evt.getQuantity());
+        assertEquals(2, evt.getVersion());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -258,8 +258,8 @@ public class InventoryItemTests {
         ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
         assertEquals(1, events.size());
         InventoryItemDeactivated evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(2, evt.version);
+        assertEquals(aggregateId, evt.getAggregateId());
+        assertEquals(2, evt.getVersion());
     }
 
     @Test
@@ -275,8 +275,8 @@ public class InventoryItemTests {
         ArrayList<InventoryItemDeactivated> events = Helper.getEvents(item, InventoryItemDeactivated.class);
         assertEquals(1, events.size());
         InventoryItemDeactivated evt = events.get(0);
-        assertEquals(aggregateId, evt.aggregateId);
-        assertEquals(2, evt.version);
+        assertEquals(aggregateId, evt.getAggregateId());
+        assertEquals(2, evt.getVersion());
     }
 
     @Test

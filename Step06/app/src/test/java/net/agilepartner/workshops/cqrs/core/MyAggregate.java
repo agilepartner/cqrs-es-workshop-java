@@ -13,16 +13,18 @@ public class MyAggregate extends AggregateRoot {
 
     public void changeName(String name) {
         Guards.checkNotNull(name);
-        if (this.name != name) {
+        if (!name.equals(this.name)) {
             raise(new NameChanged(id, name));
         }
     }
 
-    @SuppressWarnings("unused")
-    private void apply(NameChanged evt) {
-        name = evt.name;
+    @Override
+    protected <T extends Event> void apply(T event) {
+        if(event instanceof NameChanged) {
+            NameChanged evt = (NameChanged) event;
+            name = evt.getName();
+        }
     }
-
 
     //Only for testing purpose
     public MyAggregate(UUID id) {
