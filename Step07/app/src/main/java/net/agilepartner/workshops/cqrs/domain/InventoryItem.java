@@ -1,16 +1,17 @@
 package net.agilepartner.workshops.cqrs.domain;
 
 import net.agilepartner.workshops.cqrs.core.AggregateRoot;
-import net.agilepartner.workshops.cqrs.core.Event;
 import net.agilepartner.workshops.cqrs.core.Guards;
-import net.agilepartner.workshops.cqrs.core.infrastructure.UnsupportedEventException;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class InventoryItem extends AggregateRoot {
     private String name;
     private int stock;
     private Boolean active;
+
+
 
     public InventoryItem(UUID aggregateId) {
         super(aggregateId);
@@ -19,6 +20,15 @@ public class InventoryItem extends AggregateRoot {
     private InventoryItem(UUID aggregateId, String name, int quantity) {
         super(aggregateId);
         raise(InventoryItemCreated.create(aggregateId, name, quantity));
+    }
+
+    @Override
+    protected void registerEventsConsumer() {
+        eventsConsumer.put(InventoryItemCreated.class, (Consumer<InventoryItemCreated>) this::apply);
+        eventsConsumer.put(InventoryItemRenamed.class, (Consumer<InventoryItemRenamed>) this::apply);
+        eventsConsumer.put(InventoryItemCheckedIn.class, (Consumer<InventoryItemCheckedIn>) this::apply);
+        eventsConsumer.put(InventoryItemCheckedOut.class, (Consumer<InventoryItemCheckedOut>) this::apply);
+        eventsConsumer.put(InventoryItemDeactivated.class, (Consumer<InventoryItemDeactivated>) this::apply);
     }
 
     public static InventoryItem create(UUID aggregateId, String name, int quantity) {
@@ -59,27 +69,26 @@ public class InventoryItem extends AggregateRoot {
             throw new InventoryItemDeactivatedException(String.format("Inventory Item %s (id %s) is deactivated", name, id.toString()));
     }
 
-    @Override
-    protected <T extends Event> void apply(T event) {
-        if (event instanceof InventoryItemCreated) {
-            InventoryItemCreated evt = (InventoryItemCreated) event;
-            this.name = evt.getName();
-            this.stock = evt.getQuantity();
-            this.active = true;
-        } else if (event instanceof InventoryItemRenamed) {
-            InventoryItemRenamed evt = (InventoryItemRenamed) event;
-            this.name = evt.getName();
-        } else if (event instanceof InventoryItemCheckedIn) {
-            InventoryItemCheckedIn evt = (InventoryItemCheckedIn) event;
-            this.stock += evt.getQuantity();
-        } else if (event instanceof InventoryItemCheckedOut) {
-            InventoryItemCheckedOut evt = (InventoryItemCheckedOut) event;
-            this.stock -= evt.getQuantity();
-        } else if (event instanceof InventoryItemDeactivated) {
-            this.active = false;
-        } else {
-            throw new UnsupportedEventException(event.getClass());
-        }
+    private void apply(InventoryItemCreated event) {
+        this.name = event.getName();
+        this.stock = event.getQuantity();
+        this.active = true;
+    }
+
+    private void apply(InventoryItemRenamed event) {
+        this.name = event.getName();
+    }
+
+    private void apply(InventoryItemCheckedIn event) {
+        this.stock += event.getQuantity();
+    }
+
+    private void apply(InventoryItemCheckedOut event) {
+        this.stock -= event.getQuantity();
+    }
+
+    private void apply(InventoryItemDeactivated event) {
+        this.active = false;
     }
 
 }

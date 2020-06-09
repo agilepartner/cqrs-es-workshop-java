@@ -1,18 +1,18 @@
 package net.agilepartner.workshops.cqrs.core;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
 
 public abstract class AggregateRoot {
     private final List<Event> changes = new ArrayList<>();
+
+    protected Map<Class<? extends Event>, Consumer<? extends Event>> eventsConsumer = new HashMap<>();
 
     protected UUID id;
     protected int version;
 
     protected AggregateRoot(UUID id) {
+        registerEventsConsumer();
         this.id = id;
     }
 
@@ -43,8 +43,13 @@ public abstract class AggregateRoot {
         applyChange(event, true);
     }
 
-    private void applyChange(Event event, boolean isNew) {
-        apply(event);
+    private <T extends Event> void applyChange(T event, boolean isNew) {
+        eventsConsumer.entrySet().stream()
+                .filter(entry -> entry.getKey() == event.getClass())
+                .findFirst()
+                .map(entry -> (Consumer<T>) entry.getValue())
+                .ifPresent(consumer -> consumer.accept(event));
+
 
         if (isNew) {
             version++;
@@ -53,5 +58,6 @@ public abstract class AggregateRoot {
         }
     }
 
-    protected abstract <T extends Event> void apply(T event);
+    protected abstract void registerEventsConsumer();
+
 }

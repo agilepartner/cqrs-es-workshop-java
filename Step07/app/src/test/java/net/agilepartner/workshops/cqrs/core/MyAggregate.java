@@ -1,6 +1,7 @@
 package net.agilepartner.workshops.cqrs.core;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class MyAggregate extends AggregateRoot {
     private String name;
@@ -11,6 +12,11 @@ public class MyAggregate extends AggregateRoot {
         raise(evt);
     }
 
+    @Override
+    protected void registerEventsConsumer() {
+        eventsConsumer.put(NameChanged.class, (Consumer<NameChanged>) this::apply);
+    }
+
     public void changeName(String name) {
         Guards.checkNotNull(name);
         if (!name.equals(this.name)) {
@@ -18,12 +24,8 @@ public class MyAggregate extends AggregateRoot {
         }
     }
 
-    @Override
-    protected <T extends Event> void apply(T event) {
-        if(event instanceof NameChanged) {
-            NameChanged evt = (NameChanged) event;
-            name = evt.name;
-        }
+    private  void apply(NameChanged event) {
+            name = event.name;
     }
 
     //Only for testing purpose
